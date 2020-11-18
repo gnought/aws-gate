@@ -21,6 +21,7 @@ from aws_gate.constants import (
     DEFAULT_LIST_HUMAN_FIELDS,
     DEFAULT_LIST_OUTPUT_FORMATS,
     DEFAULT_LIST_OUTPUT,
+    DEFAULT_GATE_KEY_PATH,
 )
 from aws_gate.exec import exec
 from aws_gate.list import list_instances
@@ -175,6 +176,11 @@ def get_argument_parser(*args, **kwargs):
         "--key-size", type=int, default=DEFAULT_KEY_SIZE, help=argparse.SUPPRESS
     )
     ssh_proxy_parser.add_argument(
+        "--key-path",
+        type=str,
+        default=DEFAULT_GATE_KEY_PATH,
+    )
+    ssh_proxy_parser.add_argument(
         "instance_name", help="Instance we wish to open session to"
     )
 
@@ -315,6 +321,7 @@ def main(args=None, argument_parser=None):
             port=args.port,
             key_type=args.key_type,
             key_size=args.key_size,
+            key_path=args.key_path,
         )
     elif args.subcommand in ["ls", "list"]:
         fields = args.output.split(",")
