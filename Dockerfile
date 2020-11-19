@@ -13,7 +13,9 @@ RUN apk add --no-cache --virtual .build-deps \
 
 COPY . ./
 RUN pip install -e .
-RUN aws-gate bootstrap
+RUN aws-gate bootstrap && \
+    mv ~/.aws-gate/bin/* /usr/local/bin/ && \
+    rm -rf ~/.aws-gate
 
 ENTRYPOINT ["aws-gate"]
 CMD ["--help"]
