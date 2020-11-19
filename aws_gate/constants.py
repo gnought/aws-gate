@@ -1,6 +1,6 @@
 import os
 
-DEBUG = "GATE_DEBUG" in os.environ
+DEBUG = os.getenv("GATE_DEBUG", "0").lower() in ("yes", "true", "1")
 
 AWS_DEFAULT_REGION = "eu-west-1"
 AWS_DEFAULT_PROFILE = "default"
