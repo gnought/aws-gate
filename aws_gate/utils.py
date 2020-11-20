@@ -4,6 +4,8 @@ import logging
 import os
 import signal
 import subprocess
+import time
+import threading
 
 import boto3
 import botocore
@@ -77,22 +79,42 @@ def _create_aws_session(region_name=None, profile_name=None):
     return session
 
 
+# inspired by https://github.com/boto/boto3/issues/1670
+class AWSSession(object):
+    def __init__(self, region_name=None, profile_name=None):
+        self.profile_name = profile_name
+        self.region_name = region_name
+        self.__key = (profile_name, region_name)
+
+    def get_session(self):
+        thread = threading.currentThread()
+        if not hasattr(thread, "__aws_metadata__"):
+            thread.__aws_metadata__ = {
+                "age": time.time(),
+                "sessions": {}
+            }
+        if not self.__key in thread.__aws_metadata__["sessions"]:
+            thread.__aws_metadata__["sessions"][self.__key] = _create_aws_session(self.region_name, self.profile_name)
+
+        return thread.__aws_metadata__["sessions"][self.__key]
+
+
 def get_aws_client(service_name, region_name, profile_name=None):
-    session = _create_aws_session(region_name=region_name, profile_name=profile_name)
+    session = AWSSession(region_name, profile_name).get_session()
 
     logger.debug("Obtaining %s client", service_name)
     return session.client(service_name=service_name)
 
 
 def get_aws_resource(service_name, region_name, profile_name=None):
-    session = _create_aws_session(region_name=region_name, profile_name=profile_name)
+    session = AWSSession(region_name, profile_name).get_session()
 
     logger.debug("Obtaining %s boto3 resource", service_name)
     return session.resource(service_name=service_name)
 
 
 def is_existing_profile(profile_name):
-    session = _create_aws_session()
+    session = AWSSession().get_session()
 
     logger.debug(
         "Obtained configured AWS profiles: %s", " ".join(session.available_profiles)
@@ -105,7 +127,7 @@ def is_existing_region(region_name):
 
 
 def get_default_region():
-    session = _create_aws_session()
+    session = AWSSession().get_session()
 
     return session.region_name
 
