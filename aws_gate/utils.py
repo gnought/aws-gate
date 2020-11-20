@@ -65,16 +65,14 @@ def _create_aws_session(region_name=None, profile_name=None):
     # By default the cache path is ~/.aws/boto/cache
     cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
 
-    _sess = botocore.session.get_session()
+    _sess = botocore.session.Session(profile=profile_name)
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = "aws-gate/{}".format(__version__)
-    kwargs["botocore_session"] = _sess
-
-    session = boto3.session.Session(**kwargs)
-
     _sess.get_component("credential_provider").get_provider(
         "assume-role"
     ).cache = credentials.JSONFileCache(cli_cache)
+
+    session = boto3.session.Session(botocore_session=_sess, **kwargs)
 
     return session
 
