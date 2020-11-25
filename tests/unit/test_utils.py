@@ -46,21 +46,21 @@ def test_create_aws_session(mocker):
         "aws_gate.utils.boto3.session", return_value=mocker.MagicMock()
     )
 
-    _create_aws_session(region_name="eu-west-1")
+    _create_aws_session()
 
     assert session_mock.Session.called
-    assert session_mock.Session.call_args == mocker.call(region_name="eu-west-1")
+    assert session_mock.Session.call_args == mocker.call()
 
 
 def test_create_aws_session_user_agent():
-    session = _create_aws_session(region_name="eu-west-1")
+    session = _create_aws_session()
 
     # pylint: disable=protected-access
     assert "aws-gate/{}".format(__version__) in session._session.user_agent()
 
 
 def test_aws_session_file_cache_is_set():
-    session = _create_aws_session(region_name="eu-west-1")
+    session = _create_aws_session()
 
     # pylint: disable=protected-access
     assume_role_provider = session._session.get_component(
@@ -77,11 +77,11 @@ def test_create_aws_session_with_profile(mocker):
     session_mock = mocker.patch(
         "aws_gate.utils.boto3.session", return_value=mocker.MagicMock()
     )
-    _create_aws_session(region_name="eu-west-1", profile_name="default")
+    _create_aws_session(profile_name="default")
 
     assert session_mock.Session.called
     assert session_mock.Session.call_args == mocker.call(
-        region_name="eu-west-1", profile_name="default"
+        profile_name="default"
     )
 
 
