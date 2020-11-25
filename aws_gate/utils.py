@@ -48,11 +48,9 @@ AWS_REGIONS = [
 ]
 
 
-def _create_aws_session(region_name=None, profile_name=None):
+def _create_aws_session(profile_name=None):
     logger.debug("Obtaining boto3 session object")
     kwargs = {}
-    if region_name is not None:
-        kwargs["region_name"] = region_name
     if profile_name is not None:
         kwargs["profile_name"] = profile_name
 
@@ -81,10 +79,9 @@ def _create_aws_session(region_name=None, profile_name=None):
 
 # inspired by https://github.com/boto/boto3/issues/1670
 class AWSSession(object):
-    def __init__(self, profile_name=None, region_name=None):
+    def __init__(self, profile_name=None):
         self.profile_name = profile_name
-        self.region_name = region_name
-        self.__key = (profile_name or "default", region_name or "default")
+        self.__key = profile_name or "default"
 
     def get_session(self):
         thread = threading.currentThread()
@@ -94,27 +91,27 @@ class AWSSession(object):
                 "sessions": {}
             }
         if not self.__key in thread.__aws_metadata__["sessions"]:
-            thread.__aws_metadata__["sessions"][self.__key] = _create_aws_session(self.region_name, self.profile_name)
+            thread.__aws_metadata__["sessions"][self.__key] = _create_aws_session(profile_name=self.profile_name)
 
         return thread.__aws_metadata__["sessions"][self.__key]
 
 
 def get_aws_client(service_name, region_name, profile_name=None):
-    session = AWSSession(profile_name, region_name).get_session()
+    session = AWSSession(profile_name).get_session()
 
     logger.debug("Obtaining %s client", service_name)
-    return session.client(service_name=service_name)
+    return session.client(service_name=service_name, region_name=region_name)
 
 
 def get_aws_resource(service_name, region_name, profile_name=None):
-    session = AWSSession(profile_name, region_name).get_session()
+    session = AWSSession(profile_name).get_session()
 
     logger.debug("Obtaining %s boto3 resource", service_name)
-    return session.resource(service_name=service_name)
+    return session.resource(service_name=service_name, region_name=region_name)
 
 
 def is_existing_profile(profile_name):
-    session = AWSSession().get_session()
+    session = AWSSession(profile_name).get_session()
 
     logger.debug(
         "Obtained configured AWS profiles: %s", " ".join(session.available_profiles)
