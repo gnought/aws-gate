@@ -29,7 +29,7 @@ from aws_gate.session import session
 from aws_gate.ssh import ssh
 from aws_gate.ssh_config import ssh_config
 from aws_gate.ssh_proxy import ssh_proxy
-from aws_gate.utils import get_default_region
+from aws_gate.utils import get_region
 
 logger = logging.getLogger(__name__)
 
@@ -249,12 +249,6 @@ def main(args=None, argument_parser=None):
     except (ValidationError, ScannerError) as e:
         raise ValueError("Invalid configuration provided: {}".format(e))
 
-    # We want to provide default values in cases they are not configured
-    # in ~/.aws/config or availabe a environment variables
-    default_region = get_default_region()
-    if default_region is None:
-        default_region = AWS_DEFAULT_REGION
-
     # We try to obtain default profile from the environment or use 'default' to
     # save a call to boto3. In the environment, we check if we are being called
     # from aws-vault first or not. Then we return 'default' as boto3 will
@@ -269,8 +263,12 @@ def main(args=None, argument_parser=None):
         or os.environ.get("AWS_PROFILE")
         or AWS_DEFAULT_PROFILE
     )
-
     profile = _get_profile(args=args, config=config, default=default_profile)
+
+    default_region = (
+        get_region(profile)
+        or AWS_DEFAULT_REGION
+    )
     region = _get_region(args=args, config=config, default=default_region)
 
     logger.debug('Using AWS profile "%s" in region "%s"', profile, region)
