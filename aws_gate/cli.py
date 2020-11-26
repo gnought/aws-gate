@@ -244,6 +244,10 @@ def main(args=None, argument_parser=None):
 
     logging.basicConfig(level=log_level, stream=sys.stderr, format=log_format)
 
+    if args.subcommand == "bootstrap":
+        bootstrap(force=args.force)
+        sys.exit(0)
+
     try:
         config = load_config_from_files()
     except (ValidationError, ScannerError) as e:
@@ -273,9 +277,7 @@ def main(args=None, argument_parser=None):
 
     logger.debug('Using AWS profile "%s" in region "%s"', profile, region)
 
-    if args.subcommand == "bootstrap":
-        bootstrap(force=args.force)
-    elif args.subcommand == "exec":
+    if args.subcommand == "exec":
         exec(
             config=config,
             instance_name=args.instance_name,
