@@ -172,8 +172,7 @@ def execute(cmd, args, **kwargs):
             raise ValueError(f"{cmd} cannot be found")
 
     if result and result.stdout:
-        ret = result.stdout.decode()
-        ret = ret.rstrip()
+        ret = result.stdout.decode('utf-8').rstrip()
 
     return ret
 
