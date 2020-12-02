@@ -20,7 +20,7 @@ from aws_gate.decorators import (
     valid_aws_region,
 )
 from aws_gate.query import query_instance
-from aws_gate.session_common import BaseSession
+from aws_gate.ssh_proxy import SshProxySession
 from aws_gate.ssh_common import SshKey, SshKeyUploader
 from aws_gate.utils import (
     get_aws_client,
@@ -33,7 +33,7 @@ from aws_gate.utils import (
 logger = logging.getLogger(__name__)
 
 
-class SshSession(BaseSession):
+class SshSession(SshProxySession):
     def __init__(
         self,
         ssm,
@@ -47,14 +47,7 @@ class SshSession(BaseSession):
         remote_forward=None,
         dynamic_forward=None,
     ):
-        super().__init__(ssm, instance_id, region_name, profile_name,
-            session_parameters = {
-                "Target": instance_id,
-                "DocumentName": "AWS-StartSSHSession",
-                "Parameters": {"portNumber": [str(port)]},
-            })
-        self._port = port
-        self._user = user
+        super().__init__(ssm, instance_id, region_name, profile_name, port, user)
         self._command = command
         self._local_forward = local_forward
         self._remote_forward = remote_forward
