@@ -169,7 +169,7 @@ def execute(cmd, args, **kwargs):
         )
     except OSError as e:
         if e.errno == errno.ENOENT:
-            raise ValueError("{} cannot be found".format(cmd))
+            raise ValueError("{} cannot be found".format(cmd)) from e
 
     if result and result.stdout:
         ret = result.stdout.decode('utf-8').rstrip()
@@ -223,7 +223,7 @@ def get_multiple_instance_details(instance_ids, ec2=None):
     try:
         ec2_instances = list(ec2.instances.filter(InstanceIds=instance_ids))
     except botocore.exceptions.ClientError as e:
-        raise AWSConnectionError(e)
+        raise AWSConnectionError(e) from None
 
     instance_details = []
     for ec2_instance in ec2_instances:
