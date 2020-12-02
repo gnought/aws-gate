@@ -23,7 +23,7 @@ from aws_gate.constants import (
     DEFAULT_LIST_OUTPUT,
     DEFAULT_GATE_KEY_PATH,
 )
-from aws_gate.exec import exec
+from aws_gate.exec import execute
 from aws_gate.list import list_instances
 from aws_gate.session import session
 from aws_gate.ssh import ssh
@@ -278,7 +278,7 @@ def main(args=None, argument_parser=None):
     logger.debug('Using AWS profile "%s" in region "%s"', profile, region)
 
     if args.subcommand == "exec":
-        exec(
+        execute(
             config=config,
             instance_name=args.instance_name,
             command=args.command,

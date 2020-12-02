@@ -40,7 +40,7 @@ class ExecSession(BaseSession):
 @plugin_version("1.1.23.0")
 @valid_aws_profile
 @valid_aws_region
-def exec(
+def execute(
     config,
     instance_name,
     command,
