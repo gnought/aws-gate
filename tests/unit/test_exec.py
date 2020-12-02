@@ -5,14 +5,14 @@ from aws_gate.exec import ExecSession, exec  # noqa
 
 
 def test_create_exec_session(ssm_mock, instance_id):
-    sess = ExecSession(instance_id=instance_id, ssm=ssm_mock, command=["ls", "-l"])
+    sess = ExecSession(ssm_mock, instance_id=instance_id, command=["ls", "-l"])
     sess.create()
 
     assert ssm_mock.start_session.called
 
 
 def test_terminate_exec_session(ssm_mock, instance_id):
-    sess = ExecSession(instance_id=instance_id, command=["ls", "-l"], ssm=ssm_mock)
+    sess = ExecSession(ssm_mock, instance_id=instance_id, command=["ls", "-l"])
 
     sess.create()
     sess.terminate()
@@ -22,14 +22,14 @@ def test_terminate_exec_session(ssm_mock, instance_id):
 
 def test_open_exec_session(mocker, ssm_mock, instance_id):
     m = mocker.patch("aws_gate.session_common.execute_plugin", return_value="output")
-    sess = ExecSession(instance_id=instance_id, command=["ls", "-l"], ssm=ssm_mock)
+    sess = ExecSession(ssm_mock, instance_id=instance_id, command=["ls", "-l"])
     sess.open()
 
     assert m.called
 
 
 def test_exec_session_context_manager(ssm_mock, instance_id):
-    with ExecSession(instance_id=instance_id, command=["ls", "-l"], ssm=ssm_mock):
+    with ExecSession(ssm_mock, instance_id=instance_id, command=["ls", "-l"]):
         pass
 
     assert ssm_mock.start_session.called
