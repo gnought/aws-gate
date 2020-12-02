@@ -97,4 +97,4 @@ def ssh_proxy(
                 port=port,
                 user=user,
             ) as ssh_proxy_session:
-                ssh_proxy_session.open()
+                ssh_proxy_session.open(deferred_signal_list=[])

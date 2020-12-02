@@ -178,7 +178,7 @@ def execute(cmd, args, **kwargs):
 
 
 def execute_plugin(args, **kwargs):
-    with deferred_signals():
+    with deferred_signals(kwargs.pop('deferred_signal_list', None)):
         return execute(PLUGIN_NAME, args, **kwargs)
 
 

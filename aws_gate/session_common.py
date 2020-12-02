@@ -1,5 +1,6 @@
 import json
 import logging
+import signal
 
 from aws_gate.utils import execute_plugin
 
@@ -7,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 
 class BaseSession:
-    def __init__(self, ssm, instance_id, region_name, profile_name="", session_parameters=None):
+    def __init__(self, ssm, instance_id, region_name, profile_name="", session_parameters=None, signal_list=None):
         self._ssm = ssm
         self._instance_id = instance_id
         self._region_name = region_name
@@ -21,15 +22,43 @@ class BaseSession:
         self.interrupted = False
         self.__released = False
 
+        self.__signal_list = signal_list or [signal.SIGHUP, signal.SIGINT, signal.SIGTERM]
+        self.__original_handler = { s: None for s in self.__signal_list }
+
+    def __release(self):
+
+        if self.__released:
+            return False
+
+        for sig, func in self.__original_handler.items():
+            signal.signal(sig, func)
+
+        self.__released = True
+
+        # terminate session
+        self.terminate()
+
+        return True
 
     def __enter__(self):
+        self.interrupted = False
+        self.__released = False
+
+        # pylint: disable=unused-argument
+        def handler(signum, frame):
+            self.__release()
+            self.interrupted = True
+
+        for sig in self.__signal_list:
+            self.__original_handler[sig] = signal.getsignal(sig)
+            signal.signal(sig, handler)
+
         # create and establish session
         self.create()
         return self
 
     def __exit__(self, *args):
-        # terminate session
-        self.terminate()
+        self.__release()
 
     def create(self):
         logger.debug(
@@ -50,7 +79,7 @@ class BaseSession:
         response = self._ssm.terminate_session(SessionId=self._session_id)
         logger.debug("Received response: %s", response)
 
-    def open(self):
+    def open(self, deferred_signal_list=None):
         execute_plugin(
             [
                 json.dumps(self._response),
@@ -59,5 +88,6 @@ class BaseSession:
                 self._profile_name,
                 json.dumps(self._session_parameters),
                 self._ssm.meta.endpoint_url,
-            ]
+            ],
+            deferred_signal_list=deferred_signal_list
         )
