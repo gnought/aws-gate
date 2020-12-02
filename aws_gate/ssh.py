@@ -36,8 +36,8 @@ logger = logging.getLogger(__name__)
 class SshSession(BaseSession):
     def __init__(
         self,
+        ssm,
         instance_id,
-        ssm=None,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_PROFILE,
         port=DEFAULT_SSH_PORT,
@@ -47,10 +47,12 @@ class SshSession(BaseSession):
         remote_forward=None,
         dynamic_forward=None,
     ):
-        self._instance_id = instance_id
-        self._region_name = region_name
-        self._profile_name = profile_name if profile_name is not None else ""
-        self._ssm = ssm
+        super().__init__(ssm, instance_id, region_name, profile_name,
+            session_parameters = {
+                "Target": instance_id,
+                "DocumentName": "AWS-StartSSHSession",
+                "Parameters": {"portNumber": [str(port)]},
+            })
         self._port = port
         self._user = user
         self._command = command
@@ -60,11 +62,6 @@ class SshSession(BaseSession):
 
         self._ssh_cmd = None
 
-        self._session_parameters = {
-            "Target": self._instance_id,
-            "DocumentName": "AWS-StartSSHSession",
-            "Parameters": {"portNumber": [str(self._port)]},
-        }
 
     def _build_ssh_command(self):
         cmd = [
@@ -185,10 +182,10 @@ def ssh(
             instance_id=instance_id, az=az, user=user, ssh_key=ssh_key, ec2_ic=ec2_ic
         ):
             with SshSession(
+                ssm,
                 instance_id,
                 region_name=region,
                 profile_name=profile,
-                ssm=ssm,
                 port=port,
                 user=user,
                 command=command,

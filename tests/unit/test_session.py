@@ -5,14 +5,14 @@ from aws_gate.session import SSMSession, session  # noqa
 
 
 def test_create_ssm_session(ssm_mock, instance_id):
-    sess = SSMSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SSMSession(ssm_mock, instance_id=instance_id)
     sess.create()
 
     assert ssm_mock.start_session.called
 
 
 def test_terminate_ssm_session(ssm_mock, instance_id):
-    sess = SSMSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SSMSession(ssm_mock, instance_id=instance_id)
 
     sess.create()
     sess.terminate()
@@ -22,14 +22,14 @@ def test_terminate_ssm_session(ssm_mock, instance_id):
 
 def test_open_ssm_session(mocker, ssm_mock, instance_id):
     m = mocker.patch("aws_gate.session_common.execute_plugin", return_value="output")
-    sess = SSMSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SSMSession(ssm_mock, instance_id=instance_id)
     sess.open()
 
     assert m.called
 
 
 def test_ssm_session_context_manager(ssm_mock, instance_id):
-    with SSMSession(instance_id=instance_id, ssm=ssm_mock):
+    with SSMSession(ssm_mock, instance_id=instance_id):
         pass
 
     assert ssm_mock.start_session.called

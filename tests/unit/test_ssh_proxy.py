@@ -4,14 +4,14 @@ from aws_gate.ssh_proxy import SshProxySession, ssh_proxy
 
 
 def test_create_ssh_proxy_session(ssm_mock, instance_id):
-    sess = SshProxySession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshProxySession(ssm_mock, instance_id=instance_id)
     sess.create()
 
     assert ssm_mock.start_session.called
 
 
 def test_terminate_ssh_proxy_session(ssm_mock, instance_id):
-    sess = SshProxySession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshProxySession(ssm_mock, instance_id=instance_id)
 
     sess.create()
     sess.terminate()
@@ -22,14 +22,14 @@ def test_terminate_ssh_proxy_session(ssm_mock, instance_id):
 def test_open_ssh_proxy_session(mocker, instance_id, ssm_mock):
     m = mocker.patch("aws_gate.session_common.execute_plugin", return_value="output")
 
-    sess = SshProxySession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshProxySession(ssm_mock, instance_id=instance_id)
     sess.open()
 
     assert m.called
 
 
 def test_ssh_proxy_session_context_manager(ssm_mock, instance_id):
-    with SshProxySession(instance_id=instance_id, ssm=ssm_mock):
+    with SshProxySession(ssm_mock, instance_id=instance_id):
         pass
 
     assert ssm_mock.start_session.called

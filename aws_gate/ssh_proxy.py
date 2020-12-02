@@ -31,25 +31,21 @@ logger = logging.getLogger(__name__)
 class SshProxySession(BaseSession):
     def __init__(
         self,
+        ssm,
         instance_id,
-        ssm=None,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_PROFILE,
         port=DEFAULT_SSH_PORT,
         user=DEFAULT_OS_USER,
     ):
-        self._instance_id = instance_id
-        self._region_name = region_name
-        self._profile_name = profile_name if profile_name is not None else ""
-        self._ssm = ssm
+        super().__init__(ssm, instance_id, region_name, profile_name,
+            session_parameters = {
+                "Target": instance_id,
+                "DocumentName": "AWS-StartSSHSession",
+                "Parameters": {"portNumber": [str(port)]},
+            })
         self._port = port
         self._user = user
-
-        self._session_parameters = {
-            "Target": self._instance_id,
-            "DocumentName": "AWS-StartSSHSession",
-            "Parameters": {"portNumber": [str(self._port)]},
-        }
 
 
 @plugin_required
@@ -94,10 +90,10 @@ def ssh_proxy(
             instance_id=instance_id, az=az, user=user, ssh_key=ssh_key, ec2_ic=ec2_ic
         ):
             with SshProxySession(
+                ssm,
                 instance_id,
                 region_name=region,
                 profile_name=profile,
-                ssm=ssm,
                 port=port,
                 user=user,
             ) as ssh_proxy_session:

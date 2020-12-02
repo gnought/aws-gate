@@ -21,17 +21,13 @@ logger = logging.getLogger(__name__)
 class SSMSession(BaseSession):
     def __init__(
         self,
+        ssm,
         instance_id,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_REGION,
-        ssm=None,
     ):
-        self._instance_id = instance_id
-        self._region_name = region_name
-        self._profile_name = profile_name if profile_name is not None else ""
-        self._ssm = ssm
-
-        self._session_parameters = {"Target": self._instance_id}
+        super().__init__(ssm, instance_id, region_name, profile_name,
+            session_parameters = {"Target": instance_id})
 
 
 @plugin_required
@@ -61,5 +57,5 @@ def session(
         region,
         profile,
     )
-    with SSMSession(instance_id, region_name=region, ssm=ssm) as sess:
+    with SSMSession(ssm, instance_id, region_name=region) as sess:
         sess.open()

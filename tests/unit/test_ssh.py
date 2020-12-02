@@ -4,14 +4,14 @@ from aws_gate.ssh import SshSession, ssh
 
 
 def test_create_ssh_session(ssm_mock, instance_id):
-    sess = SshSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshSession(ssm_mock, instance_id=instance_id)
     sess.create()
 
     assert ssm_mock.start_session.called
 
 
 def test_terminate_ssh_session(ssm_mock, instance_id):
-    sess = SshSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshSession(ssm_mock, instance_id=instance_id)
 
     sess.create()
     sess.terminate()
@@ -27,7 +27,7 @@ def test_open_ssh_session(mocker, ssm_mock, instance_id, test_input):
     mocker.patch("aws_gate.ssh.DEBUG", debug)
     m = mocker.patch("aws_gate.ssh.execute", return_value="output")
 
-    sess = SshSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshSession(ssm_mock, instance_id=instance_id)
     sess.open()
 
     assert m.called
@@ -37,7 +37,7 @@ def test_open_ssh_session(mocker, ssm_mock, instance_id, test_input):
 def test_open_ssh_session_with_command(mocker, instance_id, ssm_mock):
     m = mocker.patch("aws_gate.ssh.execute", return_value="output")
 
-    sess = SshSession(instance_id=instance_id, ssm=ssm_mock, command=["ls", "-l"])
+    sess = SshSession(ssm=ssm_mock, instance_id=instance_id, command=["ls", "-l"])
     sess.open()
 
     assert m.called
@@ -92,7 +92,7 @@ def test_open_ssh_session_with_dynamic_forward(mocker, instance_id, ssm_mock):
 def test_open_ssh_session_host_key_verification(mocker, instance_id, ssm_mock):
     m = mocker.patch("aws_gate.ssh.execute", return_value="output")
 
-    sess = SshSession(instance_id=instance_id, ssm=ssm_mock)
+    sess = SshSession(ssm_mock, instance_id=instance_id)
     sess.open()
 
     assert m.called
@@ -101,7 +101,7 @@ def test_open_ssh_session_host_key_verification(mocker, instance_id, ssm_mock):
 
 
 def test_open_ssh_session_context_manager(instance_id, ssm_mock):
-    with SshSession(instance_id=instance_id, ssm=ssm_mock):
+    with SshSession(ssm_mock, instance_id=instance_id):
         pass
 
     assert ssm_mock.start_session.called
