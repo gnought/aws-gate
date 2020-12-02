@@ -7,16 +7,20 @@ logger = logging.getLogger(__name__)
 
 
 class BaseSession:
-    _instance_id = None
-    _ssm = None
-    _region_name = None
-    _profile_name = None
+    def __init__(self, ssm, instance_id, region_name, profile_name="", session_parameters=None):
+        self._ssm = ssm
+        self._instance_id = instance_id
+        self._region_name = region_name
+        self._profile_name = profile_name
+        self._session_parameters = session_parameters or {}
 
-    _response = None
-    _session_id = None
-    _token_value = None
+        self._response = None
+        self._session_id = None
+        self._token_value = None
 
-    _session_parameters = {}
+        self.interrupted = False
+        self.__released = False
+
 
     def __enter__(self):
         # create and establish session
