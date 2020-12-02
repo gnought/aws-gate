@@ -21,25 +21,19 @@ logger = logging.getLogger(__name__)
 class ExecSession(BaseSession):
     def __init__(
         self,
+        ssm,
         instance_id,
         command,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_PROFILE,
-        ssm=None,
     ):
-        self._instance_id = instance_id
-        self._region_name = region_name
         self._command = " ".join(command)
-        self._profile_name = profile_name if profile_name is not None else ""
-        self._ssm = ssm
-
-        self._session_parameters = {"Target": self._instance_id}
-
-        self._session_parameters = {
-            "Target": self._instance_id,
-            "DocumentName": "AWS-StartInteractiveCommand",
-            "Parameters": {"command": [self._command]},
-        }
+        super().__init__(ssm, instance_id, region_name, profile_name,
+            session_parameters = {
+                "Target": instance_id,
+                "DocumentName": "AWS-StartInteractiveCommand",
+                "Parameters": {"command": [self._command]},
+            })
 
 
 @plugin_required
@@ -71,5 +65,5 @@ def exec(
         region,
         profile,
     )
-    with ExecSession(instance_id, command, region_name=region, ssm=ssm) as sess:
+    with ExecSession(ssm, instance_id, command, region_name=region) as sess:
         sess.open()
