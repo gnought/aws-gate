@@ -1,5 +1,6 @@
 import logging
 import os
+import weakref
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
@@ -31,13 +32,15 @@ class SshKey:
         self.key_type = key_type
         self.key_size = key_size
 
+        self._finalizer = weakref.finalize(self, os.remove, self._key_path)
+
     def __enter__(self):
         self.generate()
         self.write_to_file()
         return self
 
     def __exit__(self, *args):
-        self.delete()
+        self._finalizer()
 
     def _generate_key(self):
         self._private_key = None
@@ -63,7 +66,7 @@ class SshKey:
         os.chmod(self._key_path, 0o600)
 
     def delete(self):
-        os.remove(self._key_path)
+        self._finalizer()
 
     @property
     def public_key(self):
