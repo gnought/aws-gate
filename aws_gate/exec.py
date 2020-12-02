@@ -37,7 +37,7 @@ class ExecSession(BaseSession):
 
 
 @plugin_required
-@plugin_version("1.1.23.0")
+@plugin_version("2.3.68.0")
 @valid_aws_profile
 @valid_aws_region
 def execute(
