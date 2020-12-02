@@ -249,7 +249,7 @@ def main(args=None, argument_parser=None):
     try:
         config = load_config_from_files()
     except (ValidationError, ScannerError) as e:
-        raise ValueError(f"Invalid configuration provided: {e}")
+        raise ValueError(f"Invalid configuration provided: {e}") from None
 
     # We try to obtain default profile from the environment or use 'default' to
     # save a call to boto3. In the environment, we check if we are being called
