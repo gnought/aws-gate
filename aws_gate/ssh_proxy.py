@@ -49,7 +49,7 @@ class SshProxySession(BaseSession):
 
 
 @plugin_required
-@plugin_version("2.3.68.0")
+@plugin_version("1.2.30.0")
 @valid_aws_profile
 @valid_aws_region
 def ssh_proxy(
