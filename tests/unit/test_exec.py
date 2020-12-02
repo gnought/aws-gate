@@ -1,7 +1,7 @@
 # pylint: disable=wrong-import-position
 import pytest
 
-from aws_gate.exec import ExecSession, exec  # noqa
+from aws_gate.exec import ExecSession, execute  # noqa
 
 
 def test_create_exec_session(ssm_mock, instance_id):
