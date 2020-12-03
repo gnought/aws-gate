@@ -217,25 +217,14 @@ def fetch_instance_details_from_config(
 
 
 def get_instance_details(instance_id, ec2=None):
-    return get_multiple_instance_details(instance_ids=[instance_id], ec2=ec2)[0]
+    return next(get_multiple_instance_details(instance_id, ec2))
 
 
 def get_multiple_instance_details(instance_ids, ec2=None):
-
-    ec2_instances = list(_query_aws_api(ec2, InstanceIds=instance_ids))
-
-    instance_details = []
-    for ec2_instance in ec2_instances:
-        instance_name = None
-        for tag in ec2_instance.tags:
-            if tag["Key"] == "Name":
-                instance_name = tag["Value"]
-                break
-
-        instance_details.append(
-            {
+    for ec2_instance in _query_aws_api(ec2, InstanceIds=instance_ids):
+        yield {
                 "instance_id": ec2_instance.id,
-                "instance_name": instance_name,
+                "instance_name": next(filter(lambda t: t["Key"] == "Name", ec2_instance.tags), {}).get("Value"),
                 "availability_zone": ec2_instance.placement["AvailabilityZone"],
                 "vpc_id": ec2_instance.vpc_id,
                 "private_ip_address": ec2_instance.private_ip_address or None,
@@ -243,6 +232,3 @@ def get_multiple_instance_details(instance_ids, ec2=None):
                 "private_dns_name": ec2_instance.private_dns_name or None,
                 "public_dns_name": ec2_instance.public_dns_name or None,
             }
-        )
-
-    return instance_details

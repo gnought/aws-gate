@@ -83,7 +83,7 @@ def list_instances(
     for response in instances_ssm_response_iterator:
         instance_ids = itertools.chain(instance_ids, [ i["InstanceId"] for i in response["InstanceInformationList"] ])
 
-    instance_details = get_multiple_instance_details(instance_ids=list(instance_ids), ec2=ec2)
+    instance_details = list(get_multiple_instance_details(instance_ids=list(instance_ids), ec2=ec2))
     print(
         serialize(instance_details, output_format=output_format, fields=fields).rstrip()
     )
