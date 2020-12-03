@@ -16,42 +16,43 @@ def _is_valid_ip(ip):
     return True
 
 
-def _query_aws_api(filters, ec2=None):
-    # We are always interested only in running EC2 instances as we cannot
-    # open a session to terminated EC2 instance.
-    filters = filters + [{"Name": "instance-state-name", "Values": ["running"]}]
-
+def _query_aws_api(ec2, **kwargs):
     try:
-        i = next(filter(lambda i: i.instance_id is not None, ec2.instances.filter(Filters=filters)), {})
-        logger.debug("Matching instance: %s", i.instance_id)
-        return i.instance_id
+        return filter(lambda i: i.instance_id is not None, ec2.instances.filter(Filters=kwargs.get("Filters", []), InstanceIds=kwargs.get("InstanceIds", [])))
     except botocore.exceptions.ClientError as e:
         raise AWSConnectionError(e) from None
 
-    return None
+
+def _get_running_ec2_instances(ec2, filters):
+    # We are always interested only in running EC2 instances as we cannot
+    # open a session to terminated EC2 instance.
+    filters = filters + [{"Name": "instance-state-name", "Values": ["running"]}]
+    i = next(_query_aws_api(ec2, Filters=filters), {}).instance_id
+    logger.debug("Matching instance: %s", i)
+    return i
 
 
-def getinstanceidbyprivatednsname(name, ec2=None):
+def getinstanceidbyprivatednsname(ec2, name):
     filters = [{"Name": "private-dns-name", "Values": [name]}]
-    return _query_aws_api(filters=filters, ec2=ec2)
+    return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbydnsname(name, ec2=None):
+def getinstanceidbydnsname(ec2, name):
     filters = [{"Name": "dns-name", "Values": [name]}]
-    return _query_aws_api(filters=filters, ec2=ec2)
+    return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyprivateipaddress(name, ec2=None):
+def getinstanceidbyprivateipaddress(ec2, name):
     filters = [{"Name": "private-ip-address", "Values": [name]}]
-    return _query_aws_api(filters=filters, ec2=ec2)
+    return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyipaddress(name, ec2=None):
+def getinstanceidbyipaddress(ec2 ,name):
     filters = [{"Name": "ip-address", "Values": [name]}]
-    return _query_aws_api(filters=filters, ec2=ec2)
+    return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbytag(name, ec2=None):
+def getinstanceidbytag(ec2, name):
     # One of the allowed characters in tags is ":", which might break tag
     # parsing. For this reason,we have to differentiate 2 cases for
     # provided name:
@@ -63,16 +64,16 @@ def getinstanceidbytag(name, ec2=None):
         key, value = name.split(":", 1)
 
     filters = [{"Name": "tag:{}".format(key), "Values": [value]}]
-    return _query_aws_api(filters=filters, ec2=ec2)
+    return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyinstancename(name, ec2=None):
-    return getinstanceidbytag("Name:{}".format(name), ec2=ec2)
+def getinstanceidbyinstancename(ec2, name):
+    return getinstanceidbytag(ec2, "Name:{}".format(name))
 
 
 def getinstanceidbyautoscalinggroup(name, ec2=None):
     _, asg_name = name.split(":")
-    return getinstanceidbytag("aws:autoscaling:groupName:{}".format(asg_name), ec2=ec2)
+    return getinstanceidbytag(ec2, "aws:autoscaling:groupName:{}".format(asg_name))
 
 
 def query_instance(name, ec2=None):
@@ -119,4 +120,4 @@ def query_instance(name, ec2=None):
             identifier_type = "name"
 
     logger.debug("Identifier type chosen: %s", identifier_type)
-    return func_dispatcher[identifier_type](name=name, ec2=ec2)
+    return func_dispatcher[identifier_type](ec2, name)

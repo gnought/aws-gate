@@ -14,6 +14,7 @@ from botocore import credentials
 from aws_gate import __version__
 from aws_gate.constants import DEFAULT_GATE_BIN_PATH, PLUGIN_NAME
 from aws_gate.exceptions import AWSConnectionError
+from aws_gate.query import _query_aws_api
 
 logger = logging.getLogger(__name__)
 
@@ -220,10 +221,8 @@ def get_instance_details(instance_id, ec2=None):
 
 
 def get_multiple_instance_details(instance_ids, ec2=None):
-    try:
-        ec2_instances = list(ec2.instances.filter(InstanceIds=instance_ids))
-    except botocore.exceptions.ClientError as e:
-        raise AWSConnectionError(e) from None
+
+    ec2_instances = list(_query_aws_api(ec2, InstanceIds=instance_ids))
 
     instance_details = []
     for ec2_instance in ec2_instances:
