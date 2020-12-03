@@ -4,11 +4,11 @@ import logging
 import os
 import signal
 import subprocess
-import time
 import threading
+import time
 
-import boto3
-import botocore
+import boto3.session
+import botocore.session
 from botocore import credentials
 
 from aws_gate import __version__
