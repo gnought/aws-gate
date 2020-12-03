@@ -40,7 +40,7 @@ class SshKey:
         return self
 
     def __exit__(self, *args):
-        self._finalizer()
+        self.delete()
 
     def _generate_key(self):
         self._private_key = None
@@ -66,7 +66,10 @@ class SshKey:
         os.chmod(self._key_path, 0o600)
 
     def delete(self):
-        self._finalizer()
+        try:
+            self._finalizer()
+        except FileNotFoundError:
+            pass
 
     @property
     def public_key(self):
