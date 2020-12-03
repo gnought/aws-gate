@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import os
 
 DEBUG = os.getenv("GATE_DEBUG", "0").lower() in ("yes", "true", "1")

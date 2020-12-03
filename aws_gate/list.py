@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import csv
 import io
 import itertools

@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import platform
 import logging
 import os
