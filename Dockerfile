@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3-alpine
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /code
@@ -9,7 +9,7 @@ RUN apk add --no-cache --virtual .build-deps \
     build-base openssl-dev pkgconfig libffi-dev \
     cups-dev jpeg-dev && \
     # libc6-compat is needed for running session-manager-plugin
-    apk add --no-cache libc6-compat && \
+    apk add --no-cache libc6-compat openssh-client && \
     pip install --no-cache-dir -r /code/requirements/requirements.txt && \
     apk del .build-deps
 
