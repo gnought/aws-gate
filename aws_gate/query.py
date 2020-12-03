@@ -17,23 +17,18 @@ def _is_valid_ip(ip):
 
 
 def _query_aws_api(filters, ec2=None):
-    ret = None
-
     # We are always interested only in running EC2 instances as we cannot
     # open a session to terminated EC2 instance.
     filters = filters + [{"Name": "instance-state-name", "Values": ["running"]}]
 
     try:
-        ec2_instances = list(ec2.instances.filter(Filters=filters))
-        logger.debug("Found %s maching instances", len(ec2_instances))
-        for i in ec2_instances:
-            if i.instance_id:
-                logger.debug("Matching instance: %s", i.instance_id)
-                ret = i.instance_id
+        i = next(filter(lambda i: i.instance_id is not None, ec2.instances.filter(Filters=filters)), {})
+        logger.debug("Matching instance: %s", i.instance_id)
+        return i.instance_id
     except botocore.exceptions.ClientError as e:
         raise AWSConnectionError(e) from None
 
-    return ret
+    return None
 
 
 def getinstanceidbyprivatednsname(name, ec2=None):
