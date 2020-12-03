@@ -30,6 +30,7 @@ DEFAULT_LIST_HUMAN_FIELDS = (
     "availability_zone",
     "vpc_id",
     "private_ip_address",
+    "public_ip_address",
 )
 
 DEFAULT_GATE_DIR = os.path.expanduser("~/.aws-gate")
