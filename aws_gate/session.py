@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 import logging
 
 from aws_gate.constants import AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION
