@@ -218,7 +218,7 @@ def fetch_instance_details_from_config(
 
 
 def get_instance_details(instance_id, ec2=None):
-    return next(get_multiple_instance_details(instance_id, ec2))
+    return next(get_multiple_instance_details([instance_id], ec2))
 
 
 def get_multiple_instance_details(instance_ids, ec2=None):
