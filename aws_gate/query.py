@@ -20,7 +20,9 @@ def _is_valid_ip(ip):
 
 def _query_aws_api(ec2, **kwargs):
     try:
-        return filter(lambda i: i.instance_id is not None, ec2.instances.filter(Filters=kwargs.get("Filters", []), InstanceIds=kwargs.get("InstanceIds", [])))
+        return filter(
+            lambda i: i.instance_id is not None,
+            ec2.instances.filter(Filters=kwargs.get("Filters", []), InstanceIds=kwargs.get("InstanceIds", [])))
     except botocore.exceptions.ClientError as e:
         raise AWSConnectionError(e) from None
 
