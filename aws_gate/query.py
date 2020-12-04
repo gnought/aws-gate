@@ -75,6 +75,11 @@ def get_instance_by_instancename(ec2, name):
     return get_instance_by_tag(ec2, "Name:{}".format(name))
 
 
+def get_instance_by_instanceid(ec2, name):
+    filters = [{"Name": "instance-state-name", "Values": ["running"]}]
+    return next(_query_aws_api(ec2, Filters=filters, InstanceIds=[name]), {})
+
+
 def get_instance_by_autoscalinggroup(name, ec2=None):
     _, asg_name = name.split(":")
     return get_instance_by_tag(ec2, "aws:autoscaling:groupName:{}".format(asg_name))
@@ -104,7 +109,7 @@ def query_instance(name, region_name, profile_name, ec2=None):
     # i - regular EC2 instance ID as present in AWS console/logs
     # mi - regular SSM-managed instance ID as present in AWS console/logs
     if name.startswith("id-") or name.startswith("i-") or name.startswith("mi-"):
-        return name
+        return get_instance_by_instanceid(ec2, name)
 
     if _is_valid_ip(name):
         if not ipaddress.ip_address(name).is_private:
