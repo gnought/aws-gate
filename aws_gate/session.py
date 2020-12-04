@@ -10,11 +10,7 @@ from aws_gate.decorators import (
 )
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
-from aws_gate.utils import (
-    fetch_instance_details_from_config,
-    get_aws_client,
-    get_aws_resource,
-)
+from aws_gate.utils import get_aws_resource
 
 logger = logging.getLogger(__name__)
 
@@ -22,13 +18,11 @@ logger = logging.getLogger(__name__)
 class SSMSession(BaseSession):
     def __init__(
         self,
-        ssm,
         instance_id,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_PROFILE,
     ):
         super().__init__(
-            ssm,
             instance_id,
             region_name,
             profile_name,
@@ -50,10 +44,9 @@ def session(
         config, instance_name, profile_name, region_name
     )
 
-    ssm = get_aws_client("ssm", region_name=region, profile_name=profile)
     ec2 = get_aws_resource("ec2", region_name=region, profile_name=profile)
 
-    instance_id = query_instance(name=instance, ec2=ec2)
+    instance_id = query_instance(name=instance, ec2=ec2).instance_id
     if instance_id is None:
         raise ValueError(f"No instance could be found for name: {instance}")
 
@@ -63,7 +56,5 @@ def session(
         region,
         profile,
     )
-    with SSMSession(
-        instance_id, region_name=region, profile_name=profile, ssm=ssm
-    ) as sess:
+    with SSMSession(instance_id, region_name=region, profile_name=profile) as sess:
         sess.open()

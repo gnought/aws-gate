@@ -14,8 +14,6 @@ from botocore import credentials
 
 from aws_gate import __version__
 from aws_gate.constants import DEFAULT_GATE_BIN_PATH, PLUGIN_NAME
-from aws_gate.exceptions import AWSConnectionError
-from aws_gate.query import _query_aws_api
 
 logger = logging.getLogger(__name__)
 
@@ -81,11 +79,11 @@ def _create_aws_session(profile_name=None):
 
 # inspired by https://github.com/boto/boto3/issues/1670
 class AWSSession(object):
-    def __init__(self, profile_name=None):
+    def __init__(self, profile_name=None) -> None:
         self.profile_name = profile_name
         self.__key = profile_name or "default"
 
-    def get_session(self):
+    def get_session(self) -> boto3.session.Session:
         thread = threading.currentThread()
         if not hasattr(thread, "__aws_metadata__"):
             thread.__aws_metadata__ = {
@@ -215,21 +213,3 @@ def fetch_instance_details_from_config(
         instance = instance_name
 
     return instance, profile, region
-
-
-def get_instance_details(instance_id, ec2=None):
-    return next(get_multiple_instance_details([instance_id], ec2))
-
-
-def get_multiple_instance_details(instance_ids, ec2=None):
-    for ec2_instance in _query_aws_api(ec2, InstanceIds=instance_ids):
-        yield {
-                "instance_id": ec2_instance.id,
-                "instance_name": next(filter(lambda t: t["Key"] == "Name", ec2_instance.tags), {}).get("Value"),
-                "availability_zone": ec2_instance.placement["AvailabilityZone"],
-                "vpc_id": ec2_instance.vpc_id,
-                "private_ip_address": ec2_instance.private_ip_address or None,
-                "public_ip_address": ec2_instance.public_ip_address or None,
-                "private_dns_name": ec2_instance.private_dns_name or None,
-                "public_dns_name": ec2_instance.public_dns_name or None,
-            }

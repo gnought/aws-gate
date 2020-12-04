@@ -2,15 +2,18 @@
 import json
 import logging
 import signal
+import weakref
 
-from aws_gate.utils import execute_plugin
+from aws_gate.utils import (
+    execute_plugin,
+    get_aws_client,
+)
 
 logger = logging.getLogger(__name__)
 
 
 class BaseSession:
-    def __init__(self, ssm, instance_id, region_name, profile_name="", session_parameters=None, signal_list=None):
-        self._ssm = ssm
+    def __init__(self, instance_id, region_name, profile_name="", session_parameters=None, signal_list=None):
         self._instance_id = instance_id
         self._region_name = region_name
         self._profile_name = profile_name
@@ -19,6 +22,7 @@ class BaseSession:
         self._response = None
         self._session_id = None
         self._token_value = None
+        self._ssm_endpoint_url = None
 
         self.interrupted = False
         self.__released = False
@@ -67,7 +71,9 @@ class BaseSession:
             self._instance_id,
             self._region_name,
         )
-        self._response = self._ssm.start_session(**self._session_parameters)
+        ssm = get_aws_client("ssm", self._region_name, self._profile_name)
+        self._response = ssm.start_session(**self._session_parameters)
+        self._ssm_endpoint_url = ssm.meta.endpoint_url
         logger.debug("Received response: %s", self._response)
 
         self._session_id, self._token_value = (
@@ -77,7 +83,8 @@ class BaseSession:
 
     def terminate(self):
         logger.debug("Terminating session: %s", self._session_id)
-        response = self._ssm.terminate_session(SessionId=self._session_id)
+        ssm = get_aws_client("ssm", self._region_name, self._profile_name)
+        response = ssm.terminate_session(SessionId=self._session_id)
         logger.debug("Received response: %s", response)
 
     def open(self, deferred_signal_list=None):
@@ -88,7 +95,7 @@ class BaseSession:
                 "StartSession",
                 self._profile_name,
                 json.dumps(self._session_parameters),
-                self._ssm.meta.endpoint_url,
+                self._ssm_endpoint_url,
             ],
             deferred_signal_list=deferred_signal_list
         )
