@@ -13,10 +13,10 @@ from aws_gate.constants import (
     DEFAULT_LIST_OUTPUT,
 )
 from aws_gate.decorators import valid_aws_region, valid_aws_profile
+from aws_gate.query import get_multiple_instance_details
 from aws_gate.utils import (
     get_aws_client,
     get_aws_resource,
-    get_multiple_instance_details,
 )
 
 logger = logging.getLogger(__name__)

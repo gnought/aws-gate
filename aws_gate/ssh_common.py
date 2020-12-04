@@ -7,6 +7,10 @@ from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa, ed25519
 
+from aws_gate.utils import (
+    get_aws_client,
+)
+
 from aws_gate.constants import (
     DEFAULT_GATE_KEY_PATH,
     DEFAULT_KEY_SIZE,
@@ -122,13 +126,14 @@ class SshKey:
 
 class SshKeyUploader:
     def __init__(
-        self, instance_id, az, user=DEFAULT_OS_USER, ssh_key=None, ec2_ic=None
+        self, instance_id, az, region_name, profile_name, user=DEFAULT_OS_USER, ssh_key=None
     ):
         self._instance_id = instance_id
         self._az = az
         self._ssh_key = ssh_key
-        self._ec2_ic = ec2_ic
         self._user = user
+        self._region_name = region_name
+        self._profile_name = profile_name
 
     def __enter__(self):
         self.upload()
@@ -138,8 +143,11 @@ class SshKeyUploader:
         pass
 
     def upload(self):
+        ec2_ic = get_aws_client(
+            "ec2-instance-connect", self._region_name, self._profile_name
+        )
         logger.debug("Uploading SSH public key: %s", self._ssh_key.public_key.decode())
-        response = self._ec2_ic.send_ssh_public_key(
+        response = weakref.proxy(ec2_ic).send_ssh_public_key(
             InstanceId=self._instance_id,
             InstanceOSUser=self._user,
             SSHPublicKey=str(self._ssh_key.public_key.decode()),

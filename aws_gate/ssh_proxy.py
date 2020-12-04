@@ -20,10 +20,7 @@ from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
 from aws_gate.ssh_common import SshKey, SshKeyUploader
 from aws_gate.utils import (
-    get_aws_client,
-    get_aws_resource,
     fetch_instance_details_from_config,
-    get_instance_details,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,14 +29,13 @@ logger = logging.getLogger(__name__)
 class SshProxySession(BaseSession):
     def __init__(
         self,
-        ssm,
         instance_id,
         region_name=AWS_DEFAULT_REGION,
         profile_name=AWS_DEFAULT_PROFILE,
         port=DEFAULT_SSH_PORT,
         user=DEFAULT_OS_USER,
     ):
-        super().__init__(ssm, instance_id, region_name, profile_name,
+        super().__init__(instance_id, region_name, profile_name,
             session_parameters = {
                 "Target": instance_id,
                 "DocumentName": "AWS-StartSSHSession",
@@ -68,17 +64,12 @@ def ssh_proxy(
         config, instance_name, profile_name, region_name
     )
 
-    ssm = get_aws_client("ssm", region_name=region, profile_name=profile)
-    ec2 = get_aws_resource("ec2", region_name=region, profile_name=profile)
-    ec2_ic = get_aws_client(
-        "ec2-instance-connect", region_name=region, profile_name=profile
-    )
+    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    if instance_obj is None:
+        raise ValueError("No instance could be found for name: {}".format(instance_obj))
 
-    instance_id = query_instance(name=instance, ec2=ec2)
-    if instance_id is None:
-        raise ValueError("No instance could be found for name: {}".format(instance))
-
-    az = get_instance_details(instance_id=instance_id, ec2=ec2)["availability_zone"]
+    instance_id = instance_obj.instance_id
+    az = instance_obj.placement["AvailabilityZone"]
 
     logger.info(
         "Opening SSH proxy session on instance %s (%s) via profile %s",
@@ -88,10 +79,9 @@ def ssh_proxy(
     )
     with SshKey(key_path=key_path, key_type=key_type, key_size=key_size) as ssh_key:
         with SshKeyUploader(
-            instance_id=instance_id, az=az, user=user, ssh_key=ssh_key, ec2_ic=ec2_ic
+            instance_id=instance_id, az=az, region_name=region, profile_name=profile, user=user, ssh_key=ssh_key
         ):
             with SshProxySession(
-                ssm,
                 instance_id,
                 region_name=region,
                 profile_name=profile,

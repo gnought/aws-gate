@@ -5,6 +5,7 @@ import logging
 import botocore.exceptions
 
 from aws_gate.exceptions import AWSConnectionError
+from aws_gate.utils import get_aws_resource
 
 logger = logging.getLogger(__name__)
 
@@ -28,22 +29,22 @@ def _get_running_ec2_instances(ec2, filters):
     # We are always interested only in running EC2 instances as we cannot
     # open a session to terminated EC2 instance.
     filters = filters + [{"Name": "instance-state-name", "Values": ["running"]}]
-    i = next(_query_aws_api(ec2, Filters=filters), {}).instance_id
+    i = next(_query_aws_api(ec2, Filters=filters), {})
     logger.debug("Matching instance: %s", i)
     return i
 
 
-def getinstanceidbyprivatednsname(ec2, name):
+def get_instance_by_private_dnsname(ec2, name):
     filters = [{"Name": "private-dns-name", "Values": [name]}]
     return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbydnsname(ec2, name):
+def get_instance_by_dnsname(ec2, name):
     filters = [{"Name": "dns-name", "Values": [name]}]
     return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyprivateipaddress(ec2, name):
+def get_instance_by_private_ipaddress(ec2, name):
     filters = [{"Name": "private-ip-address", "Values": [name]}]
     return _get_running_ec2_instances(ec2, filters)
 
@@ -53,7 +54,7 @@ def getinstanceidbyipaddress(ec2 ,name):
     return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbytag(ec2, name):
+def get_instance_by_tag(ec2, name):
     # One of the allowed characters in tags is ":", which might break tag
     # parsing. For this reason,we have to differentiate 2 cases for
     # provided name:
@@ -68,30 +69,30 @@ def getinstanceidbytag(ec2, name):
     return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyinstancename(ec2, name):
-    return getinstanceidbytag(ec2, "Name:{}".format(name))
+def get_instance_by_instancename(ec2, name):
+    return get_instance_by_tag(ec2, "Name:{}".format(name))
 
 
-def getinstanceidbyautoscalinggroup(name, ec2=None):
+def get_instance_by_autoscalinggroup(name, ec2=None):
     _, asg_name = name.split(":")
-    return getinstanceidbytag(ec2, "aws:autoscaling:groupName:{}".format(asg_name))
+    return get_instance_by_tag(ec2, "aws:autoscaling:groupName:{}".format(asg_name))
 
 
-def query_instance(name, ec2=None):
+def query_instance(name, region_name, profile_name, ec2=None):
     if ec2 is None:
-        raise ValueError("EC2 client is not initialized")
+       ec2 = get_aws_resource("ec2", region_name=region_name, profile_name=profile_name)
 
     logger.debug("Querying EC2 API for instance identifier: %s", name)
 
     identifier_type = None
     func_dispatcher = {
-        "dns-name": getinstanceidbydnsname,
-        "private-dns-name": getinstanceidbyprivatednsname,
+        "dns-name": get_instance_by_dnsname,
+        "private-dns-name": get_instance_by_private_dnsname,
         "ip-address": getinstanceidbyipaddress,
-        "private-ip-address": getinstanceidbyprivateipaddress,
-        "tag": getinstanceidbytag,
-        "name": getinstanceidbyinstancename,
-        "asg": getinstanceidbyautoscalinggroup,
+        "private-ip-address": get_instance_by_private_ipaddress,
+        "tag": get_instance_by_tag,
+        "name": get_instance_by_instancename,
+        "asg": get_instance_by_autoscalinggroup,
     }
 
     # If we are provided with instance ID directly, we don't need to contact EC2
@@ -122,3 +123,21 @@ def query_instance(name, ec2=None):
 
     logger.debug("Identifier type chosen: %s", identifier_type)
     return func_dispatcher[identifier_type](ec2, name)
+
+
+def get_instance_details(instance_id, ec2=None):
+    return next(get_multiple_instance_details([instance_id], ec2))
+
+
+def get_multiple_instance_details(instance_ids, ec2=None):
+    for ec2_instance in _query_aws_api(ec2, InstanceIds=instance_ids):
+        yield {
+                "instance_id": ec2_instance.id,
+                "instance_name": next(filter(lambda t: t["Key"] == "Name", ec2_instance.tags), {}).get("Value"),
+                "availability_zone": ec2_instance.placement["AvailabilityZone"],
+                "vpc_id": ec2_instance.vpc_id,
+                "private_ip_address": ec2_instance.private_ip_address or None,
+                "public_ip_address": ec2_instance.public_ip_address or None,
+                "private_dns_name": ec2_instance.private_dns_name or None,
+                "public_dns_name": ec2_instance.public_dns_name or None,
+            }
