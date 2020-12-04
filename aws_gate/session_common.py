@@ -2,7 +2,6 @@
 import json
 import logging
 import signal
-import weakref
 
 from aws_gate.utils import (
     execute_plugin,
