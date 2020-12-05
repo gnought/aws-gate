@@ -48,6 +48,8 @@ class SshKey:
         self.delete()
 
     def _generate_key(self):
+        logger.debug("Generating One-time SSH {} Key", self._key_type)
+
         self._private_key = None
 
         if self._key_type == "rsa":
@@ -65,6 +67,8 @@ class SshKey:
         self._generate_key()
 
     def write_to_file(self):
+        logger.debug("Writing One-time SSH Key in {}", self._key_path)
+
         with open(self._key_path, "wb") as f:
             f.write(self.private_key)
         # 'ssh' refuses to use the key with broad access permissions
