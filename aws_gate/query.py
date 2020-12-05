@@ -11,10 +11,12 @@ logger = logging.getLogger(__name__)
 
 
 def _parse_ip(ip):
+    ret = None
     try:
-        return ipaddress.ip_address(ip)
-    finally:
-        return None
+        ret= ipaddress.ip_address(ip)
+    except ValueError:
+        pass
+    return ret
 
 
 def _query_aws_api(ec2, **kwargs):
