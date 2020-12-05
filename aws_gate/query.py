@@ -10,12 +10,11 @@ from aws_gate.utils import get_aws_resource
 logger = logging.getLogger(__name__)
 
 
-def _is_valid_ip(ip):
+def _parse_ip(ip):
     try:
-        ipaddress.ip_address(ip)
-    except ValueError:
-        return False
-    return True
+        return ipaddress.ip_address(ip)
+    finally:
+        return None
 
 
 def _query_aws_api(ec2, **kwargs):
@@ -111,11 +110,12 @@ def query_instance(name, region_name, profile_name, ec2=None):
     if name.startswith("id-") or name.startswith("i-") or name.startswith("mi-"):
         return get_instance_by_instanceid(ec2, name)
 
-    if _is_valid_ip(name):
-        if not ipaddress.ip_address(name).is_private:
-            identifier_type = "ip-address"
-        else:
+    ip_obj = _parse_ip(name)
+    if ip_obj:
+        if ip_obj.is_private:
             identifier_type = "private-ip-address"
+        else:
+            identifier_type = "ip-address"
     else:
         if name.endswith("compute.amazonaws.com"):
             identifier_type = "dns-name"
