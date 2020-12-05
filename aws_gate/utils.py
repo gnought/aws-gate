@@ -99,14 +99,14 @@ class AWSSession(object):
 def get_aws_client(service_name, region_name, profile_name=None):
     session = AWSSession(profile_name).get_session()
 
-    logger.debug("Obtaining %s client", service_name)
+    logger.debug("Obtaining {} client", service_name)
     return session.client(service_name=service_name, region_name=region_name)
 
 
 def get_aws_resource(service_name, region_name, profile_name=None):
     session = AWSSession(profile_name).get_session()
 
-    logger.debug("Obtaining %s boto3 resource", service_name)
+    logger.debug("Obtaining {} boto3 resource", service_name)
     return session.resource(service_name=service_name, region_name=region_name)
 
 
@@ -114,7 +114,7 @@ def is_existing_profile(profile_name):
     session = AWSSession(profile_name).get_session()
 
     logger.debug(
-        "Obtained configured AWS profiles: %s", " ".join(session.available_profiles)
+        "Obtained configured AWS profiles: {}", " ".join(session.available_profiles)
     )
     return profile_name in session.available_profiles
 
@@ -141,7 +141,7 @@ def deferred_signals(signal_list=None):
 
     for deferred_signal in signal_list:
         signal_name = signal.Signals(deferred_signal).name
-        logger.debug("Deferring signal: %s", signal_name)
+        logger.debug("Deferring signal: {}", signal_name)
         signal.signal(deferred_signal, signal.SIG_IGN)
 
     try:
@@ -149,7 +149,7 @@ def deferred_signals(signal_list=None):
     finally:
         for deferred_signal in signal_list:
             signal_name = signal.Signals(deferred_signal).name
-            logger.debug("Restoring signal: %s", signal_name)
+            logger.debug("Restoring signal: {}", signal_name)
             signal.signal(deferred_signal, signal.SIG_DFL)
 
 
@@ -160,12 +160,12 @@ def execute(cmd, args, **kwargs):
     env = os.environ.copy()
     env.update({"PATH": env_path})
     try:
-        logger.debug('PATH in environment: "%s"', os.environ["PATH"])
-        logger.debug('Executing "%s"', " ".join([cmd] + args))
+        logger.debug("PATH in environment: {}", os.environ["PATH"])
+        logger.debug("Executing {}", " ".join([cmd] + args))
         result = subprocess.run([cmd] + args, env=env, check=True, **kwargs)
     except subprocess.CalledProcessError as e:
         logger.error(
-            'Command "%s" exited with %s', " ".join([cmd] + args), e.returncode
+            "Command {} exited with {}", " ".join([cmd] + args), e.returncode
         )
     except OSError as e:
         if e.errno == errno.ENOENT:
@@ -193,10 +193,10 @@ def fetch_instance_details_from_config(
         and config_data["region"]
     ):
         logger.debug(
-            "Entry found in configuration file for host alias: %s", instance_name
+            "Entry found in configuration file for host alias: {}", instance_name
         )
         logger.debug(
-            'Host alias data: host "%s" with AWS profile "%s" in region "%s"',
+            "Host alias data: host {} with AWS profile {} in region {}",
             config_data["name"],
             config_data["profile"],
             config_data["region"],
@@ -206,7 +206,7 @@ def fetch_instance_details_from_config(
         profile = config_data["profile"]
         instance = config_data["name"]
     else:
-        logger.debug("No entry found in configuration file for host: %s", instance_name)
+        logger.debug("No entry found in configuration file for host: {}", instance_name)
 
         region = region_name
         profile = profile_name

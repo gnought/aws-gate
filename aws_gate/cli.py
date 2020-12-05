@@ -276,7 +276,7 @@ def main(args=None, argument_parser=None):
     )
     region = _get_region(args=args, config=config, default=default_region)
 
-    logger.debug('Using AWS profile "%s" in region "%s"', profile, region)
+    logger.debug("Using AWS profile {} in region {}", profile, region)
 
     if args.subcommand == "exec":
         execute(

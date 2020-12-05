@@ -146,14 +146,14 @@ class SshKeyUploader:
         ec2_ic = get_aws_client(
             "ec2-instance-connect", self._region_name, self._profile_name
         )
-        logger.debug("Uploading SSH public key: %s", self._ssh_key.public_key.decode())
+        logger.debug("Uploading SSH public key: {}", self._ssh_key.public_key.decode())
         response = weakref.proxy(ec2_ic).send_ssh_public_key(
             InstanceId=self._instance_id,
             InstanceOSUser=self._user,
             SSHPublicKey=str(self._ssh_key.public_key.decode()),
             AvailabilityZone=self._az,
         )
-        logger.debug("Received response: %s", response)
+        logger.debug("Received response: {}", response)
         if not response["Success"]:
             raise ValueError(
                 "Failed to upload SSH key to instance {}".format(self._instance_id)

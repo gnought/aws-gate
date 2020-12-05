@@ -49,7 +49,7 @@ def session(
     instance_id = instance_obj.instance_id
 
     logger.info(
-        "Opening session on instance %s (%s) via profile %s",
+        "Opening session on instance {} ({}) via profile {}",
         instance_id,
         region,
         profile,

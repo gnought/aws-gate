@@ -45,7 +45,7 @@ def plugin_version(required_version):
     ):  # pylint: disable=unused-argument
         version = execute_plugin(["--version"], stdout=PIPE, stderr=PIPE)
         logger.debug(
-            "session-manager-plugin version: %s (required version: %s)",
+            "session-manager-plugin version: {} (required version: {})",
             version,
             required_version,
         )
