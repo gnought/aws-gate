@@ -149,7 +149,7 @@ def ssh(
     az = instance_obj.placement["AvailabilityZone"]
 
     logger.info(
-        "Opening SSH session on instance %s (%s) via profile %s",
+        "Opening SSH session on instance {} ({}) via profile {}",
         instance_id,
         region,
         profile,

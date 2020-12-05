@@ -66,14 +66,14 @@ class BaseSession:
 
     def create(self):
         logger.debug(
-            "Creating a new session on instance: %s (%s)",
+            "Creating a new session on instance: {} ({})",
             self._instance_id,
             self._region_name,
         )
         ssm = get_aws_client("ssm", self._region_name, self._profile_name)
         self._response = ssm.start_session(**self._session_parameters)
         self._ssm_endpoint_url = ssm.meta.endpoint_url
-        logger.debug("Received response: %s", self._response)
+        logger.debug("Received response: {}", self._response)
 
         self._session_id, self._token_value = (
             self._response["SessionId"],
@@ -81,10 +81,10 @@ class BaseSession:
         )
 
     def terminate(self):
-        logger.debug("Terminating session: %s", self._session_id)
+        logger.debug("Terminating session: {}", self._session_id)
         ssm = get_aws_client("ssm", self._region_name, self._profile_name)
         response = ssm.terminate_session(SessionId=self._session_id)
-        logger.debug("Received response: %s", response)
+        logger.debug("Received response: {}", response)
 
     def open(self, deferred_signal_list=None):
         execute_plugin(

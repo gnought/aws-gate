@@ -72,7 +72,7 @@ def ssh_proxy(
     az = instance_obj.placement["AvailabilityZone"]
 
     logger.info(
-        "Opening SSH proxy session on instance %s (%s) via profile %s",
+        "Opening SSH proxy session on instance {} ({}) via profile {}",
         instance_id,
         region,
         profile,
