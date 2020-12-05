@@ -50,11 +50,11 @@ def execute(
         config, instance_name, profile_name, region_name
     )
 
-    ec2 = get_aws_resource("ec2", region_name=region, profile_name=profile)
+    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    if instance_obj is None:
+        raise ValueError("No instance could be found for name: {}".format(instance_obj))
 
-    instance_id = query_instance(name=instance, ec2=ec2).instance_id
-    if instance_id is None:
-        raise ValueError("No instance could be found for name: {}".format(instance))
+    instance_id = instance_obj.instance_id
 
     logger.info(
         'Executing command "%s"  on instance %s (%s) via profile %s',
