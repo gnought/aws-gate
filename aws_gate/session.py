@@ -11,7 +11,6 @@ from aws_gate.decorators import (
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
 from aws_gate.utils import (
-    get_aws_resource,
     fetch_instance_details_from_config,
 )
 
@@ -55,5 +54,5 @@ def session(
         region,
         profile,
     )
-    with SSMSession(instance_id, region_name=region) as sess:
+    with SSMSession(instance_id, region_name=region_name, profile_name=profile_name) as sess:
         sess.open()
