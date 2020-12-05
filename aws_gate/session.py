@@ -10,7 +10,7 @@ from aws_gate.decorators import (
 )
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
-from aws_gate.utils import get_aws_resource
+from aws_gate.utils import fetch_instance_details_from_config
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,9 @@ def session(
         config, instance_name, profile_name, region_name
     )
 
-    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    instance_obj = query_instance(
+        name=instance, region_name=region_name, profile_name=profile_name
+    )
     if instance_obj is None:
         raise ValueError(f"No instance could be found for name: {instance_obj}")
 
@@ -56,5 +58,7 @@ def session(
         region,
         profile,
     )
-    with SSMSession(instance_id, region_name=region, profile_name=profile) as sess:
+    with SSMSession(
+        instance_id, region_name=region_name, profile_name=profile_name
+    ) as sess:
         sess.open()
