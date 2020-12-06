@@ -71,15 +71,11 @@ class GateConfig:
 
     @property
     def default_region(self):
-        if "region" in self._defaults:
-            return self._defaults["region"]
-        return None
+        return self._defaults.get("region", None)
 
     @property
     def default_profile(self):
-        if "profile" in self._defaults:
-            return self._defaults["profile"]
-        return None
+        return self._defaults.get("profile", None)
 
     def get_host(self, name):
         host = [host for host in self._hosts if host["alias"] == name]
