@@ -88,7 +88,7 @@ def get_instance_by_autoscalinggroup(name, ec2=None):
 
 def query_instance(name, region_name, profile_name, ec2=None):
     if ec2 is None:
-       ec2 = get_aws_resource("ec2", region_name=region_name, profile_name=profile_name)
+        ec2 = get_aws_resource("ec2", region_name=region_name, profile_name=profile_name)
 
     logger.debug("Querying EC2 API for instance identifier: %s", name)
 
