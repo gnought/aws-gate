@@ -84,6 +84,7 @@ class LazyLoader(ModuleType):
 
 boto3_session = LazyLoader('boto3.session')
 credentials = LazyLoader('botocore.credentials')
+botocore_hooks = LazyLoader('botocore.hooks')
 botocore_session = LazyLoader('botocore.session')
 
 
@@ -104,16 +105,27 @@ def _create_aws_session(profile_name=None):
     # By default the cache path is ~/.aws/boto/cache
     cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
 
-    _sess = botocore_session.Session(profile=profile_name)
+    # workaround, close connection per AWS API query
+    # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
+    def before_send_handler(**kwargs):
+        req = kwargs.get('request')
+        req.headers['Connection'] = 'close'
+
+    # ref: https://gist.github.com/salrashid123/fec7339e245e118654948da3abb8b685
+    # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
+    # ref: https://pages.awscloud.com/rs/112-TZM-766/images/B-4.pdf
+    hooks = botocore_hooks.HierarchicalEmitter()
+    hooks.register(event_name="before-send.*", handler=before_send_handler)
+
+    # Skip to automatically register builtin handlers botocore/handlers.py
+    _sess = botocore_session.Session(profile=profile_name, event_hooks=hooks, include_builtin_handlers=False)
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = "aws-gate/{}".format(__version__)
     _sess.get_component("credential_provider").get_provider(
         "assume-role"
     ).cache = credentials.JSONFileCache(cli_cache)
 
-    session = boto3_session.Session(botocore_session=_sess, **kwargs)
-
-    return session
+    return boto3_session.Session(botocore_session=_sess, **kwargs)
 
 
 # inspired by https://github.com/boto/boto3/issues/1670
