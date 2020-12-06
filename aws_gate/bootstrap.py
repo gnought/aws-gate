@@ -33,7 +33,7 @@ class Plugin:
 
     @property
     def is_installed(self):
-        logger.debug("Checking if {} exists and is executable", PLUGIN_INSTALL_PATH)
+        logger.debug("Checking if %s exists and is executable", PLUGIN_INSTALL_PATH)
         return shutil.which(PLUGIN_INSTALL_PATH) is None
 
     def download(self):
@@ -42,14 +42,14 @@ class Plugin:
 
         self.download_path = os.path.join(tmp_dir, file_name)
         try:
-            logger.debug("Downloading session-manager-plugin archive from {}", self.url)
+            logger.debug("Downloading session-manager-plugin archive from %s", self.url)
             with requests.get(self.url, stream=True) as req:
                 req.raise_for_status()
                 with open(self.download_path, "wb") as f:
                     shutil.copyfileobj(req.raw, f)
-                    logger.debug("Download stored at {}", self.download_path)
+                    logger.debug("Download stored at %s", self.download_path)
         except requests.exceptions.HTTPError as e:
-            logger.error("HTTP error while downloading {}: {}", self.url, e)
+            logger.error("HTTP error while downloading %s: %s", self.url, e)
 
     def install(self):
         download_dir = os.path.split(self.download_path)[0]
@@ -59,14 +59,14 @@ class Plugin:
         plugin_dst_path = PLUGIN_INSTALL_PATH
 
         if not os.path.exists(DEFAULT_GATE_BIN_PATH):
-            logger.debug("Creating {}", DEFAULT_GATE_BIN_PATH)
+            logger.debug("Creating %s", DEFAULT_GATE_BIN_PATH)
             os.makedirs(DEFAULT_GATE_BIN_PATH)
 
         with open(plugin_src_path, "rb") as f_src, open(plugin_dst_path, "wb") as f_dst:
-            logger.debug("Copying {} to {}", plugin_src_path, plugin_dst_path)
+            logger.debug("Copying %s to %s", plugin_src_path, plugin_dst_path)
             shutil.copyfileobj(f_src, f_dst)
 
-        logger.debug("Setting execution permissions on {}", plugin_dst_path)
+        logger.debug("Setting execution permissions on %s", plugin_dst_path)
         os.chmod(plugin_dst_path, 0o755)
 
         version = _check_plugin_version(PLUGIN_INSTALL_PATH)
@@ -90,7 +90,7 @@ class MacPlugin(Plugin):
         with zipfile.ZipFile(self.download_path, "r") as zip_file:
             download_dir = os.path.split(self.download_path)[0]
             logger.debug(
-                "Extracting session-manager-plugin archive at {}", download_dir
+                "Extracting session-manager-plugin archive at %s", download_dir
             )
             zip_file.extractall(download_dir)
 
@@ -103,7 +103,7 @@ class LinuxPlugin(Plugin):
         tarball = ar_file.open("data.tar.gz/")
         tar_file = tarfile.open(fileobj=tarball)
         download_dir = os.path.split(self.download_path)[0]
-        logger.debug("Extracting session-manager-plugin archive at {}", download_dir)
+        logger.debug("Extracting session-manager-plugin archive at %s", download_dir)
         tar_file.extractall(download_dir)
 
 

@@ -48,7 +48,7 @@ class SshKey:
         self.delete()
 
     def _generate_key(self):
-        logger.debug("Generating One-time SSH {} Key", self._key_type)
+        logger.debug("Generating One-time SSH %s Key", self._key_type)
 
         self._private_key = None
 
@@ -67,7 +67,7 @@ class SshKey:
         self._generate_key()
 
     def write_to_file(self):
-        logger.debug("Writing One-time SSH Key in {}", self._key_path)
+        logger.debug("Writing One-time SSH Key in %s", self._key_path)
 
         with open(self._key_path, "wb") as f:
             f.write(self.private_key)
@@ -150,14 +150,14 @@ class SshKeyUploader:
         ec2_ic = get_aws_client(
             "ec2-instance-connect", self._region_name, self._profile_name
         )
-        logger.debug("Uploading SSH public key: {}", self._ssh_key.public_key.decode())
+        logger.debug("Uploading SSH public key: %s", self._ssh_key.public_key.decode())
         response = weakref.proxy(ec2_ic).send_ssh_public_key(
             InstanceId=self._instance_id,
             InstanceOSUser=self._user,
             SSHPublicKey=str(self._ssh_key.public_key.decode()),
             AvailabilityZone=self._az,
         )
-        logger.debug("Received response: {}", response)
+        logger.debug("Received response: %s", response)
         if not response["Success"]:
             raise ValueError(
                 "Failed to upload SSH key to instance {}".format(self._instance_id)

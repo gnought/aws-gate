@@ -57,7 +57,7 @@ def execute(
     instance_id = instance_obj.instance_id
 
     logger.info(
-        "Executing command {}  on instance {} ({}) via profile {}",
+        "Executing command %s on instance %s (%s) via profile %s",
         " ".join(command),
         instance_id,
         region,
