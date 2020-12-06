@@ -96,5 +96,6 @@ class BaseSession:
                 json.dumps(self._session_parameters),
                 self._ssm_endpoint_url,
             ],
-            deferred_signal_list=deferred_signal_list
+            deferred_signal_list=deferred_signal_list,
+            clear_modules=True,
         )

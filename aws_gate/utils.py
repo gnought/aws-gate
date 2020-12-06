@@ -1,16 +1,20 @@
 # -*- encoding: utf-8 -*-
 import contextlib
 import errno
+import importlib
 import logging
 import os
 import signal
 import subprocess
+import sys
 import threading
 import time
+import types
+import weakref
 
-import boto3.session
-import botocore.session
-from botocore import credentials
+# import boto3
+# import botocore.session
+# from botocore import credentials
 
 from aws_gate import __version__
 from aws_gate.constants import DEFAULT_GATE_BIN_PATH, PLUGIN_NAME
@@ -48,6 +52,40 @@ AWS_REGIONS = [
 ]
 
 
+class LazyLoader(types.ModuleType):
+
+    def __init__(self, module_name):
+        super().__init__(module_name)
+        self._module_name = module_name
+        self._moddep_loaded = []
+        self._mod = None
+
+    def load(self):
+        if self._mod is None:
+            before_import = sys.modules.copy()
+            self._mod = weakref.proxy(importlib.import_module(
+                self._module_name
+            ))
+            self._moddep_loaded = [mod for mod in sys.modules if mod not in before_import]
+        return self._mod
+
+    def unload(self):
+        for mod in [m for m in sys.modules if m in self._moddep_loaded or sys.modules[m] is None]:
+            # del sys.modules[mod]
+            sys.modules[mod] = None
+
+    def __getattr__(self, attrb):
+        return getattr(self.load(), attrb)
+
+    def __dir__(self):
+        return dir(self._load())
+
+
+boto3_session = LazyLoader('boto3.session')
+credentials = LazyLoader('botocore.credentials')
+botocore_session = LazyLoader('botocore.session')
+
+
 def _create_aws_session(profile_name=None):
     logger.debug("Obtaining boto3 session object: %s", profile_name)
     kwargs = {}
@@ -65,14 +103,14 @@ def _create_aws_session(profile_name=None):
     # By default the cache path is ~/.aws/boto/cache
     cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
 
-    _sess = botocore.session.Session(profile=profile_name)
+    _sess = botocore_session.Session(profile=profile_name)
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = "aws-gate/{}".format(__version__)
     _sess.get_component("credential_provider").get_provider(
         "assume-role"
     ).cache = credentials.JSONFileCache(cli_cache)
 
-    session = boto3.session.Session(botocore_session=_sess, **kwargs)
+    session = boto3_session.Session(botocore_session=_sess, **kwargs)
 
     return session
 
@@ -83,7 +121,7 @@ class AWSSession(object):
         self.profile_name = profile_name
         self.__key = profile_name or "default"
 
-    def get_session(self) -> boto3.session.Session:
+    def get_session(self):
         thread = threading.currentThread()
         if not hasattr(thread, "__aws_metadata__"):
             thread.__aws_metadata__ = {
@@ -162,6 +200,12 @@ def execute(cmd, args, **kwargs):
     try:
         logger.debug("PATH in environment: %s", os.environ["PATH"])
         logger.debug("Executing %s", " ".join([cmd] + args))
+        c = kwargs.pop('clear_modules', False)
+        if c:
+            credentials.unload()
+            boto3_session.unload()
+            botocore_session.unload()
+
         result = subprocess.run([cmd] + args, env=env, check=True, **kwargs)
     except subprocess.CalledProcessError as e:
         logger.error(
