@@ -2,12 +2,7 @@
 import logging
 
 from aws_gate.constants import AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION
-from aws_gate.decorators import (
-    plugin_required,
-    plugin_version,
-    valid_aws_profile,
-    valid_aws_region,
-)
+from aws_gate.decorators import plugin_required, plugin_version
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
 from aws_gate.utils import fetch_instance_details_from_config
@@ -32,8 +27,6 @@ class SSMSession(BaseSession):
 
 @plugin_required
 @plugin_version("1.2.30.0")
-@valid_aws_profile
-@valid_aws_region
 def session(
     config,
     instance_name,

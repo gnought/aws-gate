@@ -17,8 +17,6 @@ from aws_gate.constants import (
 from aws_gate.decorators import (
     plugin_version,
     plugin_required,
-    valid_aws_profile,
-    valid_aws_region,
 )
 from aws_gate.query import query_instance
 from aws_gate.ssh_proxy import SshProxySession
@@ -121,8 +119,6 @@ class SshSession(SshProxySession):
 
 @plugin_required
 @plugin_version("1.2.30.0")
-@valid_aws_profile
-@valid_aws_region
 def ssh(
     config,
     instance_name,

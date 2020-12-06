@@ -8,7 +8,6 @@ from aws_gate.constants import (
     DEFAULT_OS_USER,
     DEFAULT_GATE_KEY_PATH,
 )
-from aws_gate.decorators import valid_aws_region, valid_aws_profile
 
 
 PROXY_COMMAND = [
@@ -18,8 +17,7 @@ PROXY_COMMAND = [
 ]
 
 
-@valid_aws_profile
-@valid_aws_region
+
 def ssh_config(
     profile_name=AWS_DEFAULT_PROFILE,
     region_name=AWS_DEFAULT_REGION,

@@ -30,7 +30,7 @@ from aws_gate.session import session
 from aws_gate.ssh import ssh
 from aws_gate.ssh_config import ssh_config
 from aws_gate.ssh_proxy import ssh_proxy
-from aws_gate.utils import get_region
+from aws_gate.utils import get_region, is_existing_profile, is_existing_region
 
 logger = logging.getLogger(__name__)
 
@@ -42,10 +42,16 @@ def _get_profile_region(args, config):
         os.environ.get("AWS_PROFILE") or \
         AWS_DEFAULT_PROFILE
 
+    if not is_existing_profile(profile):
+        raise ValueError("Invalid profile provided: {}".format(profile))
+
     region = getattr(args, "region", None) or \
         config.default_region or \
         get_region(profile) or \
         AWS_DEFAULT_REGION
+
+    if not is_existing_region(region):
+        raise ValueError("Invalid region provided: {}".format(region))
 
     return profile, region
 
