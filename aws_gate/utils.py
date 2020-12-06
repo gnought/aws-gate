@@ -49,7 +49,7 @@ AWS_REGIONS = [
 
 
 def _create_aws_session(profile_name=None):
-    logger.debug("Obtaining boto3 session object")
+    logger.debug("Obtaining boto3 session object: %s", profile_name)
     kwargs = {}
     if profile_name is not None:
         kwargs["profile_name"] = profile_name
