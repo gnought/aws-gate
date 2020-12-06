@@ -12,7 +12,6 @@ from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
 from aws_gate.utils import (
     fetch_instance_details_from_config,
-    get_aws_resource,
 )
 
 logger = logging.getLogger(__name__)
