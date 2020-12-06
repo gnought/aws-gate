@@ -4,7 +4,6 @@ import logging
 from aws_gate.constants import AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION
 from aws_gate.decorators import (
     plugin_required,
-    plugin_version,
 )
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
@@ -33,7 +32,6 @@ class ExecSession(BaseSession):
 
 
 @plugin_required
-@plugin_version("1.2.30.0")
 def execute(
     config,
     instance_name,

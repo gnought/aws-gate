@@ -11,7 +11,6 @@ from aws_gate.constants import (
     DEFAULT_GATE_KEY_PATH,
 )
 from aws_gate.decorators import (
-    plugin_version,
     plugin_required,
 )
 from aws_gate.query import query_instance
@@ -44,7 +43,6 @@ class SshProxySession(BaseSession):
 
 
 @plugin_required
-@plugin_version("1.2.30.0")
 def ssh_proxy(
     config,
     instance_name,
