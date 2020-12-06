@@ -96,11 +96,11 @@ def _locate_config_files():
         for f in configd_files:
             file_path = os.path.join(DEFAULT_GATE_CONFIGD_PATH, f)
             if os.path.isfile(file_path):
-                logger.debug("Located config file: {}", file_path)
+                logger.debug("Located config file: %s", file_path)
                 config_files.append(file_path)
 
     if os.path.isfile(DEFAULT_GATE_CONFIG_PATH):
-        logger.debug("Located config file: {}", DEFAULT_GATE_CONFIG_PATH)
+        logger.debug("Located config file: %s", DEFAULT_GATE_CONFIG_PATH)
         config_files.append(DEFAULT_GATE_CONFIG_PATH)
 
     return config_files

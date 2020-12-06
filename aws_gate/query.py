@@ -33,7 +33,7 @@ def _get_running_ec2_instances(ec2, filters):
     # open a session to terminated EC2 instance.
     filters = filters + [{"Name": "instance-state-name", "Values": ["running"]}]
     i = next(_query_aws_api(ec2, Filters=filters), {})
-    logger.debug("Matching instance: {}", i)
+    logger.debug("Matching instance: %s", i)
     return i
 
 
@@ -90,7 +90,7 @@ def query_instance(name, region_name, profile_name, ec2=None):
     if ec2 is None:
        ec2 = get_aws_resource("ec2", region_name=region_name, profile_name=profile_name)
 
-    logger.debug("Querying EC2 API for instance identifier: {}", name)
+    logger.debug("Querying EC2 API for instance identifier: %s", name)
 
     identifier_type = None
     func_dispatcher = {
@@ -130,7 +130,7 @@ def query_instance(name, region_name, profile_name, ec2=None):
         else:
             identifier_type = "name"
 
-    logger.debug("Identifier type chosen: {}", identifier_type)
+    logger.debug("Identifier type chosen: %s", identifier_type)
     return func_dispatcher[identifier_type](ec2, name)
 
 
