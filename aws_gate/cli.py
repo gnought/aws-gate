@@ -4,11 +4,7 @@ import logging
 import os
 import sys
 
-from marshmallow import ValidationError
-from yaml.scanner import ScannerError
-
 from aws_gate import __version__, __description__
-from aws_gate.bootstrap import bootstrap
 from aws_gate.config import load_config_from_files
 from aws_gate.constants import (
     SUPPORTED_KEY_TYPES,
@@ -24,12 +20,6 @@ from aws_gate.constants import (
     DEFAULT_LIST_OUTPUT,
     DEFAULT_GATE_KEY_PATH,
 )
-from aws_gate.exec import execute
-from aws_gate.list import list_instances
-from aws_gate.session import session
-from aws_gate.ssh import ssh
-from aws_gate.ssh_config import ssh_config
-from aws_gate.ssh_proxy import ssh_proxy
 from aws_gate.utils import get_region, is_existing_profile, is_existing_region
 
 logger = logging.getLogger(__name__)
@@ -253,14 +243,11 @@ def main(args=None, argument_parser=None):
     logging.basicConfig(level=log_level, stream=sys.stderr, format=log_format)
 
     if args.subcommand == "bootstrap":
+        from aws_gate.bootstrap import bootstrap
         bootstrap(force=args.force)
         sys.exit(0)
 
-    try:
-        config = load_config_from_files()
-    except (ValidationError, ScannerError) as e:
-        raise ValueError("Invalid configuration provided: {}".format(e)) from None
-
+    config = load_config_from_files()
     # We try to obtain default profile from the environment or use 'default' to
     # save a call to boto3. In the environment, we check if we are being called
     # from aws-vault first or not. Then we return 'default' as boto3 will
@@ -275,6 +262,7 @@ def main(args=None, argument_parser=None):
     logger.debug("Using AWS profile %s in region %s", profile, region)
 
     if args.subcommand == "exec":
+        from aws_gate.exec import execute
         execute(
             config=config,
             instance_name=args.instance_name,
@@ -283,6 +271,7 @@ def main(args=None, argument_parser=None):
             profile_name=profile,
         )
     elif args.subcommand == "session":
+        from aws_gate.session import session
         session(
             config=config,
             instance_name=args.instance_name,
@@ -290,6 +279,7 @@ def main(args=None, argument_parser=None):
             profile_name=profile,
         )
     elif args.subcommand == "ssh":
+        from aws_gate.ssh import ssh
         ssh(
             config=config,
             instance_name=args.instance_name,
@@ -305,10 +295,12 @@ def main(args=None, argument_parser=None):
             dynamic_forward=args.dynamic_forward,
         )
     elif args.subcommand == "ssh-config":
+        from aws_gate.ssh_config import ssh_config
         ssh_config(
             region_name=region, profile_name=profile, user=args.os_user, port=args.port
         )
     elif args.subcommand == "ssh-proxy":
+        from aws_gate.ssh_proxy import ssh_proxy
         ssh_proxy(
             config=config,
             instance_name=args.instance_name,
@@ -321,6 +313,7 @@ def main(args=None, argument_parser=None):
             key_path=args.key_path,
         )
     elif args.subcommand in ["ls", "list"]:
+        from aws_gate.list import list_instances
         fields = args.output.split(",")
         list_instances(
             region_name=region,

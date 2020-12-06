@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 import logging
 import os
+import sys
 import weakref
 
 from cryptography.hazmat.backends import default_backend
@@ -157,6 +158,11 @@ class SshKeyUploader:
             SSHPublicKey=str(self._ssh_key.public_key.decode()),
             AvailabilityZone=self._az,
         )
+        # tweak memory
+        for mod in [ m for m in sys.modules if m.startswith('cryptography.hazmat') or sys.modules[m] is None ]:
+            # del sys.modules[mod]
+            sys.modules[mod] = None
+
         logger.debug("Received response: %s", response)
         if not response["Success"]:
             raise ValueError(
