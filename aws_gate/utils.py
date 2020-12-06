@@ -12,12 +12,14 @@ import time
 import types
 import weakref
 
+from aws_gate import __version__
+from aws_gate.constants import (AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION,
+                                DEFAULT_GATE_BIN_PATH, PLUGIN_NAME)
+
 # import boto3
 # import botocore.session
 # from botocore import credentials
 
-from aws_gate import __version__
-from aws_gate.constants import DEFAULT_GATE_BIN_PATH, PLUGIN_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -148,25 +150,33 @@ def get_aws_resource(service_name, region_name, profile_name=None):
     return session.resource(service_name=service_name, region_name=region_name)
 
 
-def is_existing_profile(profile_name):
-    session = AWSSession(profile_name).get_session()
+def get_profile_region(args, config):
+    profile = getattr(args, "profile", None) or \
+        config.default_profile or \
+        os.environ.get("AWS_VAULT") or \
+        os.environ.get("AWS_PROFILE") or \
+        AWS_DEFAULT_PROFILE
 
+    session = AWSSession(profile).get_session()
+
+    ap = session.available_profiles
     logger.debug(
-        "Obtained configured AWS profiles: %s", " ".join(session.available_profiles)
+        "Obtained configured AWS profiles: %s", " ".join(ap)
     )
-    return profile_name in session.available_profiles
-
-
-def is_existing_region(region_name):
-    return region_name in AWS_REGIONS
-
-
-def get_region(profile_name=None):
-    session = AWSSession(profile_name).get_session()
+    if not profile in ap :
+        raise ValueError("Invalid profile provided: {}".format(profile))
 
     # boto3 will search `region` in order: env AWS_DEFAULT_REGION, ~/.aws/config
     # ref: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html?highlight=region
-    return session.region_name
+    region = getattr(args, "region", None) or \
+        config.default_region or \
+        session.region_name or \
+        AWS_DEFAULT_REGION
+
+    if not region in AWS_REGIONS:
+        raise ValueError("Invalid region provided: {}".format(region))
+
+    return profile, region
 
 
 @contextlib.contextmanager

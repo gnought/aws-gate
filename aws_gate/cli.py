@@ -9,8 +9,6 @@ from aws_gate.config import load_config_from_files
 from aws_gate.constants import (
     SUPPORTED_KEY_TYPES,
     DEBUG,
-    AWS_DEFAULT_REGION,
-    AWS_DEFAULT_PROFILE,
     DEFAULT_OS_USER,
     DEFAULT_SSH_PORT,
     DEFAULT_KEY_ALGORITHM,
@@ -20,30 +18,9 @@ from aws_gate.constants import (
     DEFAULT_LIST_OUTPUT,
     DEFAULT_GATE_KEY_PATH,
 )
-from aws_gate.utils import get_region, is_existing_profile, is_existing_region
+from aws_gate.utils import get_profile_region
 
 logger = logging.getLogger(__name__)
-
-
-def _get_profile_region(args, config):
-    profile = getattr(args, "profile", None) or \
-        config.default_profile or \
-        os.environ.get("AWS_VAULT") or \
-        os.environ.get("AWS_PROFILE") or \
-        AWS_DEFAULT_PROFILE
-
-    if not is_existing_profile(profile):
-        raise ValueError("Invalid profile provided: {}".format(profile))
-
-    region = getattr(args, "region", None) or \
-        config.default_region or \
-        get_region(profile) or \
-        AWS_DEFAULT_REGION
-
-    if not is_existing_region(region):
-        raise ValueError("Invalid region provided: {}".format(region))
-
-    return profile, region
 
 
 def get_argument_parser(*args, **kwargs):
@@ -257,7 +234,7 @@ def main(args=None, argument_parser=None):
             "aws-vault usage detected, defaulting to the AWS profile from $AWS_VAULT"
         )
 
-    profile, region = _get_profile_region(args, config)
+    profile, region = get_profile_region(args, config)
 
     logger.debug("Using AWS profile %s in region %s", profile, region)
 
