@@ -1,16 +1,15 @@
 # -*- encoding: utf-8 -*-
-import contextlib
+from contextlib import contextmanager
 import errno
-import importlib
+from importlib import import_module
 import logging
 import os
 import signal
 import subprocess
 import sys
-import threading
-import time
-import types
-import weakref
+from threading import currentThread
+from types import ModuleType
+from weakref import proxy
 
 from aws_gate import __version__
 from aws_gate.constants import (AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION,
@@ -54,7 +53,7 @@ AWS_REGIONS = [
 ]
 
 
-class LazyLoader(types.ModuleType):
+class LazyLoader(ModuleType):
 
     def __init__(self, module_name):
         super().__init__(module_name)
@@ -65,7 +64,7 @@ class LazyLoader(types.ModuleType):
     def load(self):
         if self._mod is None:
             before_import = sys.modules.copy()
-            self._mod = weakref.proxy(importlib.import_module(
+            self._mod = proxy(import_module(
                 self._module_name
             ))
             self._moddep_loaded = [mod for mod in sys.modules if mod not in before_import]
@@ -118,16 +117,15 @@ def _create_aws_session(profile_name=None):
 
 
 # inspired by https://github.com/boto/boto3/issues/1670
-class AWSSession(object):
+class AWSSession:
     def __init__(self, profile_name=None) -> None:
         self.profile_name = profile_name
         self.__key = profile_name or "default"
 
     def get_session(self):
-        thread = threading.currentThread()
+        thread = currentThread()
         if not hasattr(thread, "__aws_metadata__"):
             thread.__aws_metadata__ = {
-                "age": time.time(),
                 "sessions": {}
             }
         if not self.__key in thread.__aws_metadata__["sessions"]:
@@ -179,7 +177,7 @@ def get_profile_region(args, config):
     return profile, region
 
 
-@contextlib.contextmanager
+@contextmanager
 def deferred_signals(signal_list=None):
     if signal_list is None:
         if hasattr(signal, "SIGHUP"):
