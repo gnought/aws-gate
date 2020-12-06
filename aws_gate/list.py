@@ -11,7 +11,6 @@ from aws_gate.constants import (
     DEFAULT_LIST_HUMAN_FIELDS,
     DEFAULT_LIST_OUTPUT,
 )
-from aws_gate.decorators import valid_aws_region, valid_aws_profile
 from aws_gate.query import get_multiple_instance_details
 from aws_gate.utils import (
     get_aws_client,
@@ -55,8 +54,6 @@ def serialize(
     return format_dispatcher[output_format](filtered_data, fields=fields)
 
 
-@valid_aws_profile
-@valid_aws_region
 def list_instances(
     profile_name=AWS_DEFAULT_PROFILE,
     region_name=AWS_DEFAULT_REGION,

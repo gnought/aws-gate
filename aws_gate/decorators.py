@@ -56,23 +56,3 @@ def plugin_version(required_version):
         return wrapped_function(*args, **kwargs)
 
     return wrapper
-
-
-@decorator
-def valid_aws_profile(
-    wrapped_function, instance, args, kwargs
-):  # pylint: disable=unused-argument
-    if not is_existing_profile(kwargs["profile_name"]):
-        raise ValueError("Invalid profile provided: {}".format(kwargs["profile_name"]))
-
-    return wrapped_function(*args, **kwargs)
-
-
-@decorator
-def valid_aws_region(
-    wrapped_function, instance, args, kwargs
-):  # pylint: disable=unused-argument
-    if not is_existing_region(kwargs["region_name"]):
-        raise ValueError("Invalid region provided: {}".format(kwargs["region_name"]))
-
-    return wrapped_function(*args, **kwargs)

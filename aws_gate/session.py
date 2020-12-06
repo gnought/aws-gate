@@ -5,8 +5,6 @@ from aws_gate.constants import AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION
 from aws_gate.decorators import (
     plugin_version,
     plugin_required,
-    valid_aws_profile,
-    valid_aws_region,
 )
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
@@ -30,8 +28,6 @@ class SSMSession(BaseSession):
 
 @plugin_required
 @plugin_version("1.2.30.0")
-@valid_aws_profile
-@valid_aws_region
 def session(
     config,
     instance_name,
