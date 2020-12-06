@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-import logging
 from collections import OrderedDict
 
 from aws_gate.constants import (
@@ -11,7 +10,6 @@ from aws_gate.constants import (
 )
 from aws_gate.decorators import valid_aws_region, valid_aws_profile
 
-logger = logging.getLogger(__name__)
 
 PROXY_COMMAND = [
     r"""sh -c "aws-gate ssh-proxy -p `echo %h | sed -Ee 's/^(.*)\.(.*)\.(.*)$/\\3/g'`""",

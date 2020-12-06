@@ -3,7 +3,6 @@ import csv
 import io
 import itertools
 import json
-import logging
 
 from aws_gate.constants import (
     AWS_DEFAULT_PROFILE,
@@ -18,8 +17,6 @@ from aws_gate.utils import (
     get_aws_client,
     get_aws_resource,
 )
-
-logger = logging.getLogger(__name__)
 
 
 # pylint: disable=unused-argument
