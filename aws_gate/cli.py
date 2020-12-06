@@ -35,18 +35,19 @@ from aws_gate.utils import get_region
 logger = logging.getLogger(__name__)
 
 
-def _get_profile(args, config, default):
-    profile = None
-    if hasattr(args, "profile"):
-        profile = args.profile
-    return profile or config.default_profile or default
+def _get_profile_region(args, config):
+    profile = getattr(args, "profile", None) or \
+        config.default_profile or \
+        os.environ.get("AWS_VAULT") or \
+        os.environ.get("AWS_PROFILE") or \
+        AWS_DEFAULT_PROFILE
 
+    region = getattr(args, "region", None) or \
+        config.default_region or \
+        get_region(profile) or \
+        AWS_DEFAULT_REGION
 
-def _get_region(args, config, default):
-    region = None
-    if hasattr(args, "region"):
-        region = args.region
-    return region or config.default_region or default
+    return profile, region
 
 
 def get_argument_parser(*args, **kwargs):
@@ -263,18 +264,7 @@ def main(args=None, argument_parser=None):
             "aws-vault usage detected, defaulting to the AWS profile from $AWS_VAULT"
         )
 
-    default_profile = (
-        os.environ.get("AWS_VAULT")
-        or os.environ.get("AWS_PROFILE")
-        or AWS_DEFAULT_PROFILE
-    )
-    profile = _get_profile(args=args, config=config, default=default_profile)
-
-    default_region = (
-        get_region(profile)
-        or AWS_DEFAULT_REGION
-    )
-    region = _get_region(args=args, config=config, default=default_region)
+    profile, region = _get_profile_region(args, config)
 
     logger.debug("Using AWS profile %s in region %s", profile, region)
 
