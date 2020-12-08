@@ -140,10 +140,16 @@ class AWSSession:
             thread.__aws_metadata__ = {
                 "sessions": {}
             }
-        if not self.__key in thread.__aws_metadata__["sessions"]:
-            thread.__aws_metadata__["sessions"][self.__key] = _create_aws_session(profile_name=self.profile_name)
+        sessions = thread.__aws_metadata__["sessions"]
+        if not self.__key in sessions or sessions[self.__key] is None:
+            sessions[self.__key] = _create_aws_session(profile_name=self.profile_name)
 
-        return thread.__aws_metadata__["sessions"][self.__key]
+        return sessions[self.__key]
+
+    def gc(self):
+        thread = currentThread()
+        for k in thread.__aws_metadata__["sessions"]:
+            thread.__aws_metadata__["sessions"][k] = None
 
 
 def get_aws_client(service_name, region_name, profile_name=None):
@@ -222,6 +228,7 @@ def execute(cmd, args, **kwargs):
         logger.debug("Executing %s", " ".join([cmd] + args))
         c = kwargs.pop('clear_modules', False)
         if c:
+            AWSSession().gc()
             credentials.unload()
             boto3_session.unload()
             botocore_session.unload()
