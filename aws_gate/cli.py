@@ -224,6 +224,7 @@ def main(args=None, argument_parser=None):
         bootstrap(force=args.force)
         sys.exit(0)
 
+    logging.debug("program starts")
     config = load_config_from_files()
     # We try to obtain default profile from the environment or use 'default' to
     # save a call to boto3. In the environment, we check if we are being called
