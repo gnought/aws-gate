@@ -28,6 +28,7 @@ CLASSIFIERS = [
     "License :: OSI Approved :: BSD License",
     "Operating System :: OS Independent",
     "Topic :: System :: Systems Administration",
+    "Environment :: Console",
 ]
 INSTALL_REQUIRES = get_install_requirements("requirements/requirements.txt")
 EXTRA_REQUIRES = {
