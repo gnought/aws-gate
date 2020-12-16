@@ -38,7 +38,7 @@ class SshKey:
         self.key_type = key_type
         self.key_size = key_size
 
-        self._finalizer = weakref.finalize(self, os.remove, self._key_path)
+        self._finalizer = weakref.finalize(self, os.remove, self._key_path.name)
 
     def __enter__(self):
         self.generate()
@@ -68,12 +68,11 @@ class SshKey:
         self._generate_key()
 
     def write_to_file(self):
-        logger.debug("Writing One-time SSH Key in %s", self._key_path)
-
-        with open(self._key_path, "wb") as f:
+        logger.debug("Writing One-time SSH Key in %s", self._key_path.name)
+        with self._key_path as f:
             f.write(self.private_key)
         # 'ssh' refuses to use the key with broad access permissions
-        os.chmod(self._key_path, 0o600)
+        os.chmod(self._key_path.name, 0o600)
 
     def delete(self):
         try:

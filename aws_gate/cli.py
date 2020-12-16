@@ -152,7 +152,7 @@ def get_argument_parser(*args, **kwargs):
     )
     ssh_proxy_parser.add_argument(
         "--key-path",
-        type=str,
+        type=argparse.FileType("wb"),
         default=DEFAULT_GATE_KEY_PATH,
     )
     ssh_proxy_parser.add_argument(
