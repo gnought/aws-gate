@@ -45,6 +45,6 @@ def plugin_required(
     )
 
     if version and parse_version(version) < parse_version(required_version):
-        raise ValueError("Require plugin minimum version: {}".format(required_version))
+        raise ValueError(f"Require plugin minimum version: {required_version}")
 
     return wrapped_function(*args, **kwargs)

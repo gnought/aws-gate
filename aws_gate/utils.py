@@ -120,7 +120,7 @@ def _create_aws_session(profile_name=None):
     # Skip to automatically register builtin handlers botocore/handlers.py
     _sess = botocore_session.Session(profile=profile_name, event_hooks=hooks, include_builtin_handlers=False)
     # Add aws-gate version to the client user-agent
-    _sess.user_agent_extra = "aws-gate/{}".format(__version__)
+    _sess.user_agent_extra = f"aws-gate/{__version__}"
     _sess.get_component("credential_provider").get_provider(
         "assume-role"
     ).cache = credentials.JSONFileCache(cli_cache)
@@ -180,7 +180,7 @@ def get_profile_region(args, config):
         "Obtained configured AWS profiles: %s", " ".join(ap)
     )
     if not profile in ap :
-        raise ValueError("Invalid profile provided: {}".format(profile))
+        raise ValueError(f"Invalid profile provided: {profile}")
 
     # boto3 will search `region` in order: env AWS_DEFAULT_REGION, ~/.aws/config
     # ref: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html?highlight=region
@@ -190,7 +190,7 @@ def get_profile_region(args, config):
         AWS_DEFAULT_REGION
 
     if not region in AWS_REGIONS:
-        raise ValueError("Invalid region provided: {}".format(region))
+        raise ValueError(f"Invalid region provided: {region}")
 
     return profile, region
 
