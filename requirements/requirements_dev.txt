@@ -1,6 +1,7 @@
-attrs==22.2.0
-bandit==1.7.5
-black==23.1.0
+# https://github.com/HypothesisWorks/hypothesis/issues/2113
+attrs>=23.1.0
+bandit>=1.7.5
+black
 dlint==0.12.0
 flake8==4.0.1
 flake8-bandit==2.1.2
@@ -12,8 +13,8 @@ pre-commit==2.20.0
 pylint==2.17.0
 pytest==7.2.2
 pytest-black==0.3.12
-pytest-cov==4.0.0
-pytest-datadir==1.4.1
-pytest-mock==3.10.0
+pytest-cov>=4.1.0
+pytest-datadir>=1.4.1
+pytest-mock>=3.10.0
 pytest-pylint==0.18.0
-boto3-stubs[essential]~=1.20.24
+boto3-stubs[essential]~=1.22.6
