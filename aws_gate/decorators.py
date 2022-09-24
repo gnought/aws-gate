@@ -7,8 +7,11 @@ from subprocess import PIPE
 from packaging.version import parse as parse_version
 from wrapt import decorator
 
-from aws_gate.constants import (PLUGIN_INSTALL_PATH,
-                                PLUGIN_MINIMUM_VERSION_REQUIRED, PLUGIN_NAME)
+from aws_gate.constants import (
+    PLUGIN_INSTALL_PATH,
+    PLUGIN_MINIMUM_VERSION_REQUIRED,
+    PLUGIN_NAME,
+)
 from aws_gate.utils import execute_plugin
 
 logger = logging.getLogger(__name__)

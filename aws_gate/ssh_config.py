@@ -17,7 +17,6 @@ PROXY_COMMAND = [
 ]
 
 
-
 def ssh_config(
     profile_name=AWS_DEFAULT_PROFILE,
     region_name=AWS_DEFAULT_REGION,

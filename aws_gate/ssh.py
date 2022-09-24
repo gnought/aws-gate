@@ -49,7 +49,6 @@ class SshSession(SshProxySession):
 
         self._ssh_cmd = None
 
-
     def _build_ssh_command(self):
         cmd = [
             "ssh",
@@ -135,7 +134,9 @@ def ssh(
         config, instance_name, profile_name, region_name
     )
 
-    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    instance_obj = query_instance(
+        name=instance, region_name=region_name, profile_name=profile_name
+    )
     if instance_obj is None:
         raise ValueError(f"No instance could be found for name: {instance_obj}")
 
@@ -158,7 +159,12 @@ def ssh(
         )
     with SshKey(key_type=key_type, key_size=key_size) as ssh_key:
         with SshKeyUploader(
-            instance_id=instance_id, az=az, region_name=region, profile_name=profile, user=user, ssh_key=ssh_key
+            instance_id=instance_id,
+            az=az,
+            region_name=region,
+            profile_name=profile,
+            user=user,
+            ssh_key=ssh_key,
         ):
             with SshSession(
                 instance_id,

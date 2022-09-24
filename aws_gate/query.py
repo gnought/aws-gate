@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 def _parse_ip(ip):
     ret = None
     try:
-        ret= ipaddress.ip_address(ip)
+        ret = ipaddress.ip_address(ip)
     except ValueError:
         pass
     return ret
@@ -23,7 +23,11 @@ def _query_aws_api(ec2, **kwargs):
     try:
         return filter(
             lambda i: i.instance_id is not None,
-            ec2.instances.filter(Filters=kwargs.get("Filters", []), InstanceIds=kwargs.get("InstanceIds", [])))
+            ec2.instances.filter(
+                Filters=kwargs.get("Filters", []),
+                InstanceIds=kwargs.get("InstanceIds", []),
+            ),
+        )
     except botocore.exceptions.ClientError as e:
         raise AWSConnectionError(e) from None
 
@@ -52,7 +56,7 @@ def get_instance_by_private_ipaddress(ec2, name):
     return _get_running_ec2_instances(ec2, filters)
 
 
-def getinstanceidbyipaddress(ec2 ,name):
+def getinstanceidbyipaddress(ec2, name):
     filters = [{"Name": "ip-address", "Values": [name]}]
     return _get_running_ec2_instances(ec2, filters)
 
@@ -88,7 +92,9 @@ def get_instance_by_autoscalinggroup(name, ec2=None):
 
 def query_instance(name, region_name, profile_name, ec2=None):
     if ec2 is None:
-        ec2 = get_aws_resource("ec2", region_name=region_name, profile_name=profile_name)
+        ec2 = get_aws_resource(
+            "ec2", region_name=region_name, profile_name=profile_name
+        )
 
     logger.debug("Querying EC2 API for instance identifier: %s", name)
 
@@ -141,12 +147,14 @@ def get_instance_details(instance_id, ec2=None):
 def get_multiple_instance_details(instance_ids, ec2=None):
     for ec2_instance in _query_aws_api(ec2, InstanceIds=instance_ids):
         yield {
-                "instance_id": ec2_instance.id,
-                "instance_name": next(filter(lambda t: t["Key"] == "Name", ec2_instance.tags), {}).get("Value"),
-                "availability_zone": ec2_instance.placement["AvailabilityZone"],
-                "vpc_id": ec2_instance.vpc_id,
-                "private_ip_address": ec2_instance.private_ip_address or None,
-                "public_ip_address": ec2_instance.public_ip_address or None,
-                "private_dns_name": ec2_instance.private_dns_name or None,
-                "public_dns_name": ec2_instance.public_dns_name or None,
-            }
+            "instance_id": ec2_instance.id,
+            "instance_name": next(
+                filter(lambda t: t["Key"] == "Name", ec2_instance.tags), {}
+            ).get("Value"),
+            "availability_zone": ec2_instance.placement["AvailabilityZone"],
+            "vpc_id": ec2_instance.vpc_id,
+            "private_ip_address": ec2_instance.private_ip_address or None,
+            "public_ip_address": ec2_instance.public_ip_address or None,
+            "private_dns_name": ec2_instance.private_dns_name or None,
+            "public_dns_name": ec2_instance.public_dns_name or None,
+        }

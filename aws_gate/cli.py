@@ -219,6 +219,7 @@ def main(args=None, argument_parser=None):
 
     if args.subcommand == "bootstrap":
         from aws_gate.bootstrap import bootstrap
+
         bootstrap(force=args.force)
         sys.exit(0)
 
@@ -239,6 +240,7 @@ def main(args=None, argument_parser=None):
 
     if args.subcommand == "exec":
         from aws_gate.exec import execute
+
         execute(
             config=config,
             instance_name=args.instance_name,
@@ -248,6 +250,7 @@ def main(args=None, argument_parser=None):
         )
     elif args.subcommand == "session":
         from aws_gate.session import session
+
         session(
             config=config,
             instance_name=args.instance_name,
@@ -256,6 +259,7 @@ def main(args=None, argument_parser=None):
         )
     elif args.subcommand == "ssh":
         from aws_gate.ssh import ssh
+
         ssh(
             config=config,
             instance_name=args.instance_name,
@@ -272,11 +276,13 @@ def main(args=None, argument_parser=None):
         )
     elif args.subcommand == "ssh-config":
         from aws_gate.ssh_config import ssh_config
+
         ssh_config(
             region_name=region, profile_name=profile, user=args.os_user, port=args.port
         )
     elif args.subcommand == "ssh-proxy":
         from aws_gate.ssh_proxy import ssh_proxy
+
         ssh_proxy(
             config=config,
             instance_name=args.instance_name,
@@ -290,6 +296,7 @@ def main(args=None, argument_parser=None):
         )
     elif args.subcommand in ["ls", "list"]:
         from aws_gate.list import list_instances
+
         fields = args.output.split(",")
         list_instances(
             region_name=region,

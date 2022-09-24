@@ -130,7 +130,13 @@ class SshKey:
 
 class SshKeyUploader:
     def __init__(
-        self, instance_id, az, region_name, profile_name, user=DEFAULT_OS_USER, ssh_key=None
+        self,
+        instance_id,
+        az,
+        region_name,
+        profile_name,
+        user=DEFAULT_OS_USER,
+        ssh_key=None,
     ):
         self._instance_id = instance_id
         self._az = az
@@ -158,7 +164,11 @@ class SshKeyUploader:
             AvailabilityZone=self._az,
         )
         # tweak memory
-        for mod in [ m for m in sys.modules if m.startswith('cryptography.hazmat') or sys.modules[m] is None ]:
+        for mod in [
+            m
+            for m in sys.modules
+            if m.startswith("cryptography.hazmat") or sys.modules[m] is None
+        ]:
             # del sys.modules[mod]
             sys.modules[mod] = None
 

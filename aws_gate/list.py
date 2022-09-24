@@ -77,12 +77,7 @@ def list_instances(
     instance_ids = []
     for response in instances_ssm_response_iterator:
         instance_ids = itertools.chain(
-            instance_ids,
-            [
-                i["InstanceId"]
-                for i in response["InstanceInformationList"]
-                if i["PingStatus"] == "Online"
-            ],
+            instance_ids, [i["InstanceId"] for i in response["InstanceInformationList"]]
         )
 
     instance_details = list(

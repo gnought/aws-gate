@@ -12,7 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 class BaseSession:
-    def __init__(self, instance_id, region_name, profile_name="", session_parameters=None, signal_list=None):
+    def __init__(
+        self,
+        instance_id,
+        region_name,
+        profile_name="",
+        session_parameters=None,
+        signal_list=None,
+    ):
         self._instance_id = instance_id
         self._region_name = region_name
         self._profile_name = profile_name
@@ -26,8 +33,12 @@ class BaseSession:
         self.interrupted = False
         self.__released = False
 
-        self.__signal_list = signal_list or [signal.SIGHUP, signal.SIGINT, signal.SIGTERM]
-        self.__original_handler = { s: None for s in self.__signal_list }
+        self.__signal_list = signal_list or [
+            signal.SIGHUP,
+            signal.SIGINT,
+            signal.SIGTERM,
+        ]
+        self.__original_handler = {s: None for s in self.__signal_list}
 
     def __release(self):
 

@@ -23,12 +23,16 @@ class ExecSession(BaseSession):
         profile_name=AWS_DEFAULT_PROFILE,
     ):
         self._command = " ".join(command)
-        super().__init__(instance_id, region_name, profile_name,
-            session_parameters = {
+        super().__init__(
+            instance_id,
+            region_name,
+            profile_name,
+            session_parameters={
                 "Target": instance_id,
                 "DocumentName": "AWS-StartInteractiveCommand",
                 "Parameters": {"command": [self._command]},
-            })
+            },
+        )
 
 
 @plugin_required
@@ -43,7 +47,9 @@ def execute(
         config, instance_name, profile_name, region_name
     )
 
-    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    instance_obj = query_instance(
+        name=instance, region_name=region_name, profile_name=profile_name
+    )
     if instance_obj is None:
         raise ValueError(f"No instance could be found for name: {instance_obj}")
 

@@ -80,9 +80,7 @@ def test_create_aws_session_with_profile(mocker):
     _create_aws_session(profile_name="default")
 
     assert session_mock.Session.called
-    assert session_mock.Session.call_args == mocker.call(
-        profile_name="default"
-    )
+    assert session_mock.Session.call_args == mocker.call(profile_name="default")
 
 
 def test_create_aws_profile_credentials_from_env_vars(mocker):

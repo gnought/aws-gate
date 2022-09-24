@@ -12,8 +12,12 @@ from types import ModuleType
 from weakref import proxy
 
 from aws_gate import __version__
-from aws_gate.constants import (AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION,
-                                DEFAULT_GATE_BIN_PATH, PLUGIN_NAME)
+from aws_gate.constants import (
+    AWS_DEFAULT_PROFILE,
+    AWS_DEFAULT_REGION,
+    DEFAULT_GATE_BIN_PATH,
+    PLUGIN_NAME,
+)
 
 # import boto3
 # import botocore.session
@@ -54,7 +58,6 @@ AWS_REGIONS = [
 
 
 class LazyLoader(ModuleType):
-
     def __init__(self, module_name):
         super().__init__(module_name)
         self._module_name = module_name
@@ -64,14 +67,16 @@ class LazyLoader(ModuleType):
     def load(self):
         if self._mod is None:
             before_import = sys.modules.copy()
-            self._mod = proxy(import_module(
-                self._module_name
-            ))
-            self._moddep_loaded = [mod for mod in sys.modules if mod not in before_import]
+            self._mod = proxy(import_module(self._module_name))
+            self._moddep_loaded = [
+                mod for mod in sys.modules if mod not in before_import
+            ]
         return self._mod
 
     def unload(self):
-        for mod in [m for m in sys.modules if m in self._moddep_loaded or sys.modules[m] is None]:
+        for mod in [
+            m for m in sys.modules if m in self._moddep_loaded or sys.modules[m] is None
+        ]:
             # del sys.modules[mod]
             sys.modules[mod] = None
 
@@ -82,10 +87,10 @@ class LazyLoader(ModuleType):
         return dir(self._load())
 
 
-boto3_session = LazyLoader('boto3.session')
-credentials = LazyLoader('botocore.credentials')
-botocore_hooks = LazyLoader('botocore.hooks')
-botocore_session = LazyLoader('botocore.session')
+boto3_session = LazyLoader("boto3.session")
+credentials = LazyLoader("botocore.credentials")
+botocore_hooks = LazyLoader("botocore.hooks")
+botocore_session = LazyLoader("botocore.session")
 
 
 def _create_aws_session(profile_name=None):
@@ -108,8 +113,8 @@ def _create_aws_session(profile_name=None):
     # workaround, close connection per AWS API query
     # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
     def before_send_handler(**kwargs):
-        req = kwargs.get('request')
-        req.headers['Connection'] = 'close'
+        req = kwargs.get("request")
+        req.headers["Connection"] = "close"
 
     # ref: https://gist.github.com/salrashid123/fec7339e245e118654948da3abb8b685
     # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
@@ -118,7 +123,9 @@ def _create_aws_session(profile_name=None):
     hooks.register(event_name="before-send.*", handler=before_send_handler)
 
     # Skip to automatically register builtin handlers botocore/handlers.py
-    _sess = botocore_session.Session(profile=profile_name, event_hooks=hooks, include_builtin_handlers=False)
+    _sess = botocore_session.Session(
+        profile=profile_name, event_hooks=hooks, include_builtin_handlers=False
+    )
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = f"aws-gate/{__version__}"
     _sess.get_component("credential_provider").get_provider(
@@ -137,9 +144,7 @@ class AWSSession:
     def get_session(self):
         thread = currentThread()
         if not hasattr(thread, "__aws_metadata__"):
-            thread.__aws_metadata__ = {
-                "sessions": {}
-            }
+            thread.__aws_metadata__ = {"sessions": {}}
         sessions = thread.__aws_metadata__["sessions"]
         if not self.__key in sessions or sessions[self.__key] is None:
             sessions[self.__key] = _create_aws_session(profile_name=self.profile_name)
@@ -167,27 +172,29 @@ def get_aws_resource(service_name, region_name, profile_name=None):
 
 
 def get_profile_region(args, config):
-    profile = getattr(args, "profile", None) or \
-        config.default_profile or \
-        os.environ.get("AWS_VAULT") or \
-        os.environ.get("AWS_PROFILE") or \
-        AWS_DEFAULT_PROFILE
+    profile = (
+        getattr(args, "profile", None)
+        or config.default_profile
+        or os.environ.get("AWS_VAULT")
+        or os.environ.get("AWS_PROFILE")
+        or AWS_DEFAULT_PROFILE
+    )
 
     session = AWSSession(profile).get_session()
 
     ap = session.available_profiles
-    logger.debug(
-        "Obtained configured AWS profiles: %s", " ".join(ap)
-    )
-    if not profile in ap :
+    logger.debug("Obtained configured AWS profiles: %s", " ".join(ap))
+    if not profile in ap:
         raise ValueError(f"Invalid profile provided: {profile}")
 
     # boto3 will search `region` in order: env AWS_DEFAULT_REGION, ~/.aws/config
     # ref: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html?highlight=region
-    region = getattr(args, "region", None) or \
-        config.default_region or \
-        session.region_name or \
-        AWS_DEFAULT_REGION
+    region = (
+        getattr(args, "region", None)
+        or config.default_region
+        or session.region_name
+        or AWS_DEFAULT_REGION
+    )
 
     if not region in AWS_REGIONS:
         raise ValueError(f"Invalid region provided: {region}")
@@ -226,7 +233,7 @@ def execute(cmd, args, **kwargs):
     try:
         logger.debug("PATH in environment: %s", os.environ["PATH"])
         logger.debug("Executing %s", " ".join([cmd] + args))
-        c = kwargs.pop('clear_modules', False)
+        c = kwargs.pop("clear_modules", False)
         if c:
             AWSSession().gc()
             credentials.unload()
@@ -235,21 +242,19 @@ def execute(cmd, args, **kwargs):
 
         result = subprocess.run([cmd] + args, env=env, check=True, **kwargs)
     except subprocess.CalledProcessError as e:
-        logger.error(
-            "Command %s exited with %s", " ".join([cmd] + args), e.returncode
-        )
+        logger.error("Command %s exited with %s", " ".join([cmd] + args), e.returncode)
     except OSError as e:
         if e.errno == errno.ENOENT:
             raise ValueError(f"{cmd} cannot be found") from e
 
     if result and result.stdout:
-        ret = result.stdout.decode('utf-8').rstrip()
+        ret = result.stdout.decode("utf-8").rstrip()
 
     return ret
 
 
 def execute_plugin(args, **kwargs):
-    with deferred_signals(kwargs.pop('deferred_signal_list', None)):
+    with deferred_signals(kwargs.pop("deferred_signal_list", None)):
         return execute(PLUGIN_NAME, args, **kwargs)
 
 

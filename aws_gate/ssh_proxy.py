@@ -32,12 +32,16 @@ class SshProxySession(BaseSession):
         port=DEFAULT_SSH_PORT,
         user=DEFAULT_OS_USER,
     ):
-        super().__init__(instance_id, region_name, profile_name,
-            session_parameters = {
+        super().__init__(
+            instance_id,
+            region_name,
+            profile_name,
+            session_parameters={
                 "Target": instance_id,
                 "DocumentName": "AWS-StartSSHSession",
                 "Parameters": {"portNumber": [str(port)]},
-            })
+            },
+        )
         self._port = port
         self._user = user
 
@@ -58,7 +62,9 @@ def ssh_proxy(
         config, instance_name, profile_name, region_name
     )
 
-    instance_obj = query_instance(name=instance, region_name=region_name, profile_name=profile_name)
+    instance_obj = query_instance(
+        name=instance, region_name=region_name, profile_name=profile_name
+    )
     if instance_obj is None:
         raise ValueError(f"No instance could be found for name: {instance_obj}")
 
@@ -73,7 +79,12 @@ def ssh_proxy(
     )
     with SshKey(key_path=key_path, key_type=key_type, key_size=key_size) as ssh_key:
         with SshKeyUploader(
-            instance_id=instance_id, az=az, region_name=region, profile_name=profile, user=user, ssh_key=ssh_key
+            instance_id=instance_id,
+            az=az,
+            region_name=region,
+            profile_name=profile,
+            user=user,
+            ssh_key=ssh_key,
         ):
             with SshProxySession(
                 instance_id,
