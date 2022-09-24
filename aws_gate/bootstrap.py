@@ -3,7 +3,6 @@ import logging
 import os
 import platform
 import shutil
-import tarfile
 import tempfile
 import zipfile
 from subprocess import PIPE
@@ -18,6 +17,7 @@ from aws_gate.constants import (
     SSM_PLUGIN_PATH,
 )
 from aws_gate.exceptions import UnsupportedPlatormError
+from aws_gate.safetarfile import SafeTarFile
 from aws_gate.utils import execute
 
 logger = logging.getLogger(__name__)
@@ -99,7 +99,7 @@ class LinuxPlugin(Plugin):
     def extract(self):
         ar_file = unix_ar.open(self.download_path)
         tarball = ar_file.open("data.tar.gz/")
-        tar_file = tarfile.open(fileobj=tarball)
+        tar_file = SafeTarFile.open(fileobj=tarball)
         download_dir = os.path.split(self.download_path)[0]
         logger.debug("Extracting session-manager-plugin archive at %s", download_dir)
         tar_file.extractall(download_dir)
