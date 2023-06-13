@@ -62,5 +62,7 @@ def execute(
         region,
         profile,
     )
-    with ExecSession(instance_id, command, region_name=region) as sess:
+    with ExecSession(
+        instance_id, command, region_name=region, profile_name=profile
+    ) as sess:
         sess.open()
