@@ -48,7 +48,7 @@ def execute(
     )
 
     instance_obj = query_instance(
-        name=instance, region_name=region_name, profile_name=profile_name
+        name=instance, region_name=region, profile_name=profile
     )
     if instance_obj is None:
         raise ValueError(f"No instance could be found for name: {instance_obj}")
