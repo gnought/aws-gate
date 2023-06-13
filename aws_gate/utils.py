@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
-from contextlib import contextmanager
 import errno
-from importlib import import_module
 import logging
 import os
 import signal
 import subprocess
 import sys
+from contextlib import contextmanager
+from importlib import import_module
 from threading import currentThread
 from types import ModuleType
 from weakref import proxy

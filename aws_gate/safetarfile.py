@@ -1,7 +1,8 @@
 import sys
-
+from os.path import abspath, dirname
+from os.path import join as joinpath
+from os.path import realpath
 from tarfile import TarFile
-from os.path import abspath, realpath, dirname, join as joinpath
 
 _resolved = lambda x: realpath(abspath(x))
 

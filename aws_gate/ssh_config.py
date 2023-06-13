@@ -4,11 +4,10 @@ from collections import OrderedDict
 from aws_gate.constants import (
     AWS_DEFAULT_PROFILE,
     AWS_DEFAULT_REGION,
-    DEFAULT_SSH_PORT,
-    DEFAULT_OS_USER,
     DEFAULT_GATE_KEY_PATH,
+    DEFAULT_OS_USER,
+    DEFAULT_SSH_PORT,
 )
-
 
 PROXY_COMMAND = [
     r"""sh -c "aws-gate ssh-proxy -p `echo %h | sed -Ee 's/^(.*)\.(.*)\.(.*)$/\\3/g'`""",

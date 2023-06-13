@@ -3,10 +3,7 @@ import json
 import logging
 import signal
 
-from aws_gate.utils import (
-    execute_plugin,
-    get_aws_client,
-)
+from aws_gate.utils import execute_plugin, get_aws_client
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +38,6 @@ class BaseSession:
         self.__original_handler = {s: None for s in self.__signal_list}
 
     def __release(self):
-
         if self.__released:
             return False
 

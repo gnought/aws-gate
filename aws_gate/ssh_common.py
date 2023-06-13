@@ -6,18 +6,15 @@ import weakref
 
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
-from cryptography.hazmat.primitives.asymmetric import rsa, ed25519
-
-from aws_gate.utils import (
-    get_aws_client,
-)
+from cryptography.hazmat.primitives.asymmetric import ed25519, rsa
 
 from aws_gate.constants import (
     DEFAULT_GATE_KEY_PATH,
     DEFAULT_KEY_SIZE,
-    SUPPORTED_KEY_TYPES,
     DEFAULT_OS_USER,
+    SUPPORTED_KEY_TYPES,
 )
+from aws_gate.utils import get_aws_client
 
 logger = logging.getLogger(__name__)
 

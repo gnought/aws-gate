@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-import platform
 import logging
 import os
+import platform
 from subprocess import PIPE
 
 from packaging.version import parse as parse_version

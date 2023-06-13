@@ -6,24 +6,19 @@ import shlex
 from aws_gate.constants import (
     AWS_DEFAULT_PROFILE,
     AWS_DEFAULT_REGION,
-    DEFAULT_OS_USER,
-    DEFAULT_SSH_PORT,
-    DEFAULT_KEY_ALGORITHM,
-    DEFAULT_KEY_SIZE,
-    PLUGIN_INSTALL_PATH,
     DEBUG,
     DEFAULT_GATE_KEY_PATH,
+    DEFAULT_KEY_ALGORITHM,
+    DEFAULT_KEY_SIZE,
+    DEFAULT_OS_USER,
+    DEFAULT_SSH_PORT,
+    PLUGIN_INSTALL_PATH,
 )
-from aws_gate.decorators import (
-    plugin_required,
-)
+from aws_gate.decorators import plugin_required
 from aws_gate.query import query_instance
-from aws_gate.ssh_proxy import SshProxySession
 from aws_gate.ssh_common import SshKey, SshKeyUploader
-from aws_gate.utils import (
-    fetch_instance_details_from_config,
-    execute,
-)
+from aws_gate.ssh_proxy import SshProxySession
+from aws_gate.utils import execute, fetch_instance_details_from_config
 
 logger = logging.getLogger(__name__)
 

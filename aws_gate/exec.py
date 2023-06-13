@@ -2,14 +2,10 @@
 import logging
 
 from aws_gate.constants import AWS_DEFAULT_PROFILE, AWS_DEFAULT_REGION
-from aws_gate.decorators import (
-    plugin_required,
-)
+from aws_gate.decorators import plugin_required
 from aws_gate.query import query_instance
 from aws_gate.session_common import BaseSession
-from aws_gate.utils import (
-    fetch_instance_details_from_config,
-)
+from aws_gate.utils import fetch_instance_details_from_config
 
 logger = logging.getLogger(__name__)
 

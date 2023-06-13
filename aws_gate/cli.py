@@ -4,19 +4,19 @@ import logging
 import os
 import sys
 
-from aws_gate import __version__, __description__
+from aws_gate import __description__, __version__
 from aws_gate.config import load_config_from_files
 from aws_gate.constants import (
-    SUPPORTED_KEY_TYPES,
     DEBUG,
-    DEFAULT_OS_USER,
-    DEFAULT_SSH_PORT,
+    DEFAULT_GATE_KEY_PATH,
     DEFAULT_KEY_ALGORITHM,
     DEFAULT_KEY_SIZE,
     DEFAULT_LIST_HUMAN_FIELDS,
-    DEFAULT_LIST_OUTPUT_FORMATS,
     DEFAULT_LIST_OUTPUT,
-    DEFAULT_GATE_KEY_PATH,
+    DEFAULT_LIST_OUTPUT_FORMATS,
+    DEFAULT_OS_USER,
+    DEFAULT_SSH_PORT,
+    SUPPORTED_KEY_TYPES,
 )
 from aws_gate.utils import get_profile_region
 
