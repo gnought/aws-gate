@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import os
+from pathlib import Path
 
 DEBUG = os.getenv("GATE_DEBUG", "0").lower() in ("yes", "true", "1")
 
@@ -34,27 +35,26 @@ DEFAULT_LIST_HUMAN_FIELDS = (
     "public_ip_address",
 )
 
-DEFAULT_GATE_DIR = os.path.expanduser("~/.aws-gate")
-DEFAULT_GATE_CONFIG_PATH = os.path.join(DEFAULT_GATE_DIR, "config")
-DEFAULT_GATE_CONFIGD_PATH = os.path.join(DEFAULT_GATE_DIR, "config.d")
+DEFAULT_GATE_DIR = Path.home() / ".aws-gate"
+DEFAULT_GATE_CONFIG = DEFAULT_GATE_DIR / "config"
+DEFAULT_GATE_CONFIGD_PATH = DEFAULT_GATE_DIR / "config.d"
 
 PLUGIN_NAME = "session-manager-plugin"
 PLUGIN_MINIMUM_VERSION_REQUIRED = "1.2.30.0"
-DEFAULT_GATE_BIN_PATH = os.path.join(DEFAULT_GATE_DIR, "bin")
-PLUGIN_INSTALL_PATH = os.path.join(DEFAULT_GATE_BIN_PATH, PLUGIN_NAME)
+DEFAULT_GATE_BIN_PATH = DEFAULT_GATE_DIR / "bin"
+PLUGIN_INSTALL_PATH = DEFAULT_GATE_BIN_PATH / PLUGIN_NAME
 
-DEFAULT_GATE_KEY_PATH = os.path.join(DEFAULT_GATE_DIR, "key")
+DEFAULT_GATE_KEY_PATH = DEFAULT_GATE_DIR / "key"
 
 SSM_PLUGIN_BASE_URL = "https://s3.amazonaws.com/session-manager-downloads/plugin/latest"
+
 SSM_PLUGIN_PATH = {
     "Darwin": {
         "download": SSM_PLUGIN_BASE_URL + "/mac/sessionmanager-bundle.zip",
-        "bundle": os.path.join("sessionmanager-bundle", "bin", PLUGIN_NAME),
+        "bundle": Path("sessionmanager-bundle", "bin", PLUGIN_NAME),
     },
     "Linux": {
         "download": SSM_PLUGIN_BASE_URL + "/ubuntu_64bit/session-manager-plugin.deb",
-        "bundle": os.path.join(
-            "usr", "local", "sessionmanagerplugin", "bin", PLUGIN_NAME
-        ),
+        "bundle": Path("usr", "local", "sessionmanagerplugin", "bin", PLUGIN_NAME),
     },
 }

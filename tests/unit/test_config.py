@@ -4,15 +4,15 @@ import pytest
 from marshmallow import ValidationError
 
 from aws_gate.config import (
-    GateConfig,
     EmptyConfigurationError,
-    load_config_from_files,
+    GateConfig,
     _locate_config_files,
+    _merge_data,
+    load_config_from_files,
     validate_profile,
     validate_region,
-    _merge_data,
 )
-from aws_gate.constants import DEFAULT_GATE_CONFIG_PATH, DEFAULT_GATE_CONFIGD_PATH
+from aws_gate.constants import DEFAULT_GATE_CONFIG, DEFAULT_GATE_CONFIGD_PATH
 
 
 def _load_config_files(config_files):
@@ -157,7 +157,7 @@ def test_locate_config_files(mocker):
     mocker.patch("aws_gate.config.os.path.isfile", return_value=True)
     expected_config_files = [
         os.path.join(DEFAULT_GATE_CONFIGD_PATH, "foo.yaml"),
-        DEFAULT_GATE_CONFIG_PATH,
+        DEFAULT_GATE_CONFIG,
     ]
     assert _locate_config_files() == expected_config_files
 

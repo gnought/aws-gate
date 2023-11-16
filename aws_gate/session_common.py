@@ -2,25 +2,33 @@
 import json
 import logging
 import signal
+from typing import TYPE_CHECKING
 
 from aws_gate.utils import execute_plugin, get_aws_client
 
 logger = logging.getLogger(__name__)
 
+if TYPE_CHECKING:
+    from mypy_boto3_ssm.client import SSMClient
+
 
 class BaseSession:
     def __init__(
         self,
-        instance_id,
-        region_name,
-        profile_name="",
-        session_parameters=None,
-        signal_list=None,
+        instance_id: str,
+        region_name: str,
+        profile_name: str | None = None,
+        session_parameters: dict = {},
+        signal_list: list[signal.Signals] = [
+            signal.SIGHUP,
+            signal.SIGINT,
+            signal.SIGTERM,
+        ],
     ):
         self._instance_id = instance_id
         self._region_name = region_name
         self._profile_name = profile_name
-        self._session_parameters = session_parameters or {}
+        self._session_parameters = session_parameters
 
         self._response = None
         self._session_id = None
@@ -30,11 +38,7 @@ class BaseSession:
         self.interrupted = False
         self.__released = False
 
-        self.__signal_list = signal_list or [
-            signal.SIGHUP,
-            signal.SIGINT,
-            signal.SIGTERM,
-        ]
+        self.__signal_list = signal_list
         self.__original_handler = {s: None for s in self.__signal_list}
 
     def __release(self):
@@ -77,7 +81,9 @@ class BaseSession:
             self._instance_id,
             self._region_name,
         )
-        ssm = get_aws_client("ssm", self._region_name, self._profile_name)
+        ssm = get_aws_client(
+            "ssm", self._region_name, self._profile_name
+        )  # type: SSMClient
         self._response = ssm.start_session(**self._session_parameters)
         self._ssm_endpoint_url = ssm.meta.endpoint_url
         logger.debug("Received response: %s", self._response)
@@ -89,7 +95,9 @@ class BaseSession:
 
     def terminate(self):
         logger.debug("Terminating session: %s", self._session_id)
-        ssm = get_aws_client("ssm", self._region_name, self._profile_name)
+        ssm = get_aws_client(
+            "ssm", self._region_name, self._profile_name
+        )  # type: SSMClient
         response = ssm.terminate_session(SessionId=self._session_id)
         logger.debug("Received response: %s", response)
 
@@ -99,7 +107,7 @@ class BaseSession:
                 json.dumps(self._response),
                 self._region_name,
                 "StartSession",
-                self._profile_name,
+                self._profile_name or "",
                 json.dumps(self._session_parameters),
                 self._ssm_endpoint_url,
             ],

@@ -2,6 +2,7 @@
 import logging
 import os
 import platform
+from pathlib import Path
 from subprocess import PIPE
 
 from packaging.version import parse as parse_version
@@ -17,14 +18,14 @@ from aws_gate.utils import execute_plugin
 logger = logging.getLogger(__name__)
 
 
-def _plugin_exists(plugin_path):
-    return os.path.exists(plugin_path)
+def _plugin_exists(plugin_path: Path):
+    return plugin_path.is_file() and plugin_path.exists()
 
 
 def _plugin_exists_in_path():
     return any(
-        _plugin_exists(os.path.join(path, PLUGIN_NAME))
-        for path in os.environ["PATH"].split(os.path.pathsep)
+        _plugin_exists(Path(p) / PLUGIN_NAME)
+        for p in str(os.getenv("PATH", "")).split(os.path.pathsep)
     )
 
 
@@ -35,7 +36,7 @@ def plugin_required(
     if (
         not _plugin_exists(PLUGIN_INSTALL_PATH)
         and not _plugin_exists_in_path()
-        and not platform.system() == "Windows"
+        and not platform.system().lower() == "windows"
     ):
         raise OSError(f"{PLUGIN_NAME} not found")
 

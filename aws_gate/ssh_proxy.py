@@ -75,12 +75,12 @@ def ssh_proxy(
     )
     with SshKey(key_path=key_path, key_type=key_type, key_size=key_size) as ssh_key:
         with SshKeyUploader(
+            ssh_key,
             instance_id=instance_id,
             az=az,
             region_name=region,
             profile_name=profile,
             user=user,
-            ssh_key=ssh_key,
         ):
             with SshProxySession(
                 instance_id,

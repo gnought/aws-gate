@@ -1,5 +1,5 @@
-boto3~=1.28.40
-cryptography~=41.0.3
+boto3
+cryptography>=41, <42
 marshmallow>=3.20.1
 packaging>=23.1
 PyYAML>=5.1,<6.1

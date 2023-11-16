@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 import logging
+from pathlib import Path
 
 import yaml
 from marshmallow import Schema, ValidationError, fields, post_load
@@ -8,7 +9,8 @@ from yaml.parser import ParserError
 from yaml.scanner import ScannerError
 
 from aws_gate.config import GateConfig
-from aws_gate.utils import is_existing_profile, is_existing_region
+
+# from aws_gate.utils import is_existing_profile, is_existing_region
 
 logger = logging.getLogger(__name__)
 
@@ -87,14 +89,14 @@ def _merge_defaults(config_data):
                 host[key] = value
 
 
-def load_config(config_files=None):
+def load_config(config_files: list[Path]):
     config_data, data = {}, {}
 
     for path in config_files:
         try:
-            with open(path, "r") as config_file:
-                data = yaml.safe_load(config_file) or {}
-        except (ConstructorError, ParserError):
+            with path.open("r") as f:
+                data = yaml.safe_load(f) or {}
+        except (ConstructorError, ParserError, FileNotFoundError):
             data = {}
         _merge_data(data, config_data)
 

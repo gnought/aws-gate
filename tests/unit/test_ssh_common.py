@@ -1,14 +1,14 @@
 from datetime import timedelta
 
 import pytest
-from hypothesis import given, example, settings
-from hypothesis.strategies import text, integers, sampled_from
+from hypothesis import example, given, settings
+from hypothesis.strategies import integers, sampled_from, text
 
 from aws_gate.constants import DEFAULT_GATE_KEY_PATH
 from aws_gate.ssh_common import (
-    SshKey,
-    SUPPORTED_KEY_TYPES,
     KEY_MIN_SIZE,
+    SUPPORTED_KEY_TYPES,
+    SshKey,
     SshKeyUploader,
 )
 
@@ -92,7 +92,7 @@ def test_delete_key(mocker):
 
 def test_uploader(ec2_ic_mock, ssh_key, instance_id):
     uploader = SshKeyUploader(
-        instance_id=instance_id, az="eu-west-1a", ssh_key=ssh_key, ec2_ic=ec2_ic_mock
+        ssh_key, instance_id=instance_id, az="eu-west-1a", ec2_ic=ec2_ic_mock
     )
     uploader.upload()
 
@@ -101,7 +101,7 @@ def test_uploader(ec2_ic_mock, ssh_key, instance_id):
 
 def test_uploader_as_context_manager(ec2_ic_mock, ssh_key, instance_id):
     with SshKeyUploader(
-        instance_id=instance_id, az="eu-west-1a", ssh_key=ssh_key, ec2_ic=ec2_ic_mock
+        ssh_key, instance_id=instance_id, az="eu-west-1a", ec2_ic=ec2_ic_mock
     ):
         assert ec2_ic_mock.send_ssh_public_key.called
 
@@ -112,9 +112,9 @@ def test_uploader_exception(ec2_ic_mock, ssh_key, instance_id):
     )
     with pytest.raises(ValueError):
         uploader = SshKeyUploader(
+            ssh_key,
             instance_id=instance_id,
             az="eu-west-1a",
-            ssh_key=ssh_key,
             ec2_ic=ec2_ic_mock,
         )
         uploader.upload()

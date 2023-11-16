@@ -3,6 +3,7 @@ import argparse
 import logging
 import os
 import sys
+from pathlib import Path
 
 from aws_gate import __description__, __version__
 from aws_gate.config import load_config_from_files
@@ -150,7 +151,8 @@ def get_argument_parser(*args, **kwargs):
     )
     ssh_proxy_parser.add_argument(
         "--key-path",
-        type=argparse.FileType("wb"),
+        # type=argparse.FileType("wb"),
+        type=Path,
         default=DEFAULT_GATE_KEY_PATH,
     )
     ssh_proxy_parser.add_argument(

@@ -18,12 +18,13 @@ def test_binary(ctx):
 
 @task
 def prepare_binary(ctx):  # pylint: disable=unused-argument
-    if platform.system() == "Windows":
+    system = platform.system().lower()
+    if system == "windows":
         binary_name = "aws-gate.exe"
     else:
         binary_name = "aws-gate"
     binary_path = f"{os.path.join('dist', binary_name)}"
-    platform_suffix = f"{platform.system()}_{platform.machine().lower()}"
+    platform_suffix = f"{system}_{platform.machine().lower()}"
     platform_binary_name = f"{binary_name}_{platform_suffix}"
     platform_binary_path = f"{binary_path}_{platform_suffix}"
 

@@ -6,12 +6,22 @@ import signal
 import subprocess
 import sys
 from contextlib import contextmanager
+from contextvars import ContextVar
 from importlib import import_module
-from threading import currentThread
 from types import ModuleType
+from typing import TYPE_CHECKING
 from weakref import proxy
 
 from aws_gate import __version__
+
+if TYPE_CHECKING:
+    from botocore.awsrequest import AWSPreparedRequest
+    from aws_gate.config import GateConfig
+    from botocore.hooks import HierarchicalEmitter
+    from botocore import session
+    from botocore.utils import JSONFileCache
+    from boto3.session import Session
+
 from aws_gate.constants import (
     AWS_DEFAULT_PROFILE,
     AWS_DEFAULT_REGION,
@@ -19,46 +29,11 @@ from aws_gate.constants import (
     PLUGIN_NAME,
 )
 
-# import boto3
-# import botocore.session
-# from botocore import credentials
-
-
 logger = logging.getLogger(__name__)
-
-# This list is maintained by hand as new regions are not added that often. This should be
-# removed once, we find a better way how to obtain region list without the need to
-# contact AWS EC2 API
-AWS_REGIONS = [
-    "af-south-1",
-    "ap-east-1",
-    "ap-northeast-1",
-    "ap-northeast-2",
-    "ap-south-1",
-    "ap-southeast-1",
-    "ap-southeast-2",
-    "ca-central-1",
-    "cn-north-1",
-    "cn-northwest-1",
-    "eu-central-1",
-    "eu-north-1",
-    "eu-south-1",
-    "eu-west-1",
-    "eu-west-2",
-    "eu-west-3",
-    "me-south-1",
-    "sa-east-1",
-    "us-east-1",
-    "us-east-2",
-    "us-gov-east-1",
-    "us-gov-west-1",
-    "us-west-1",
-    "us-west-2",
-]
 
 
 class LazyLoader(ModuleType):
-    def __init__(self, module_name):
+    def __init__(self, module_name: str):
         super().__init__(module_name)
         self._module_name = module_name
         self._moddep_loaded = []
@@ -78,7 +53,7 @@ class LazyLoader(ModuleType):
             m for m in sys.modules if m in self._moddep_loaded or sys.modules[m] is None
         ]:
             # del sys.modules[mod]
-            sys.modules[mod] = None
+            sys.modules[mod] = None  # type: ignore
 
     def __getattr__(self, attrb):
         return getattr(self.load(), attrb)
@@ -88,24 +63,26 @@ class LazyLoader(ModuleType):
 
 
 boto3_session = LazyLoader("boto3.session")
-credentials = LazyLoader("botocore.credentials")
+botocore_utils = LazyLoader("botocore.utils")
 botocore_hooks = LazyLoader("botocore.hooks")
 botocore_session = LazyLoader("botocore.session")
 
 
 def _create_aws_session(profile_name=None):
+    # type: (str | None) -> Session
+
     logger.debug("Obtaining boto3 session object: %s", profile_name)
     kwargs = {}
     if profile_name is not None:
-        kwargs["profile_name"] = profile_name
+        kwargs["profile_name"] = str(profile_name)
 
     # https://github.com/boto/boto3/issues/598
     if "AWS_ACCESS_KEY_ID" in os.environ:
-        kwargs["aws_access_key_id"] = os.environ["AWS_ACCESS_KEY_ID"]
+        kwargs["aws_access_key_id"] = str(os.environ["AWS_ACCESS_KEY_ID"])
     if "AWS_SECRET_ACCESS_KEY" in os.environ:
-        kwargs["aws_secret_access_key"] = os.environ["AWS_SECRET_ACCESS_KEY"]
+        kwargs["aws_secret_access_key"] = str(os.environ["AWS_SECRET_ACCESS_KEY"])
     if "AWS_SESSION_TOKEN" in os.environ:
-        kwargs["aws_session_token"] = os.environ["AWS_SESSION_TOKEN"]
+        kwargs["aws_session_token"] = str(os.environ["AWS_SESSION_TOKEN"])
 
     # By default the cache path is ~/.aws/boto/cache
     cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
@@ -113,90 +90,97 @@ def _create_aws_session(profile_name=None):
     # workaround, close connection per AWS API query
     # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
     def before_send_handler(**kwargs):
-        req = kwargs.get("request")
-        req.headers["Connection"] = "close"
+        req = kwargs.get("request")  # type: AWSPreparedRequest | None
+        if req is not None:
+            req.headers["Connection"] = "close"
 
     # ref: https://gist.github.com/salrashid123/fec7339e245e118654948da3abb8b685
     # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
     # ref: https://pages.awscloud.com/rs/112-TZM-766/images/B-4.pdf
-    hooks = botocore_hooks.HierarchicalEmitter()
+    hooks = botocore_hooks.HierarchicalEmitter()  # type: HierarchicalEmitter
     hooks.register(event_name="before-send.*", handler=before_send_handler)
 
     # Skip to automatically register builtin handlers botocore/handlers.py
     _sess = botocore_session.Session(
-        profile=profile_name, event_hooks=hooks, include_builtin_handlers=False
-    )
+        profile=str(profile_name), event_hooks=hooks, include_builtin_handlers=False
+    )  # type: session.Session
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = f"aws-gate/{__version__}"
-    _sess.get_component("credential_provider").get_provider(
-        "assume-role"
-    ).cache = credentials.JSONFileCache(cli_cache)
+
+    cache = botocore_utils.JSONFileCache(cli_cache)  # type: JSONFileCache
+    _sess.get_component("credential_provider").get_provider("assume-role").cache = cache
 
     return boto3_session.Session(botocore_session=_sess, **kwargs)
 
 
 # inspired by https://github.com/boto/boto3/issues/1670
 class AWSSession:
-    def __init__(self, profile_name=None) -> None:
-        self.profile_name = profile_name
-        self.__key = profile_name or "default"
+    def __init__(self, profile_name: str | None = None) -> None:
+        self.__key = str(profile_name or "default")
+        self.context = ContextVar("aws_sessions", default={})
 
     def get_session(self):
-        thread = currentThread()
-        if not hasattr(thread, "__aws_metadata__"):
-            thread.__aws_metadata__ = {"sessions": {}}
-        sessions = thread.__aws_metadata__["sessions"]
-        if not self.__key in sessions or sessions[self.__key] is None:
-            sessions[self.__key] = _create_aws_session(profile_name=self.profile_name)
-
-        return sessions[self.__key]
+        sess = self.context.get().get(self.__key)  # type: Session | None
+        if sess is None:
+            sess = _create_aws_session(self.__key)
+            self.context.set({self.__key: sess})
+        return sess
 
     def gc(self):
-        thread = currentThread()
-        for k in thread.__aws_metadata__["sessions"]:
-            thread.__aws_metadata__["sessions"][k] = None
+        self.context.set({})
 
 
-def get_aws_client(service_name, region_name, profile_name=None):
+def get_aws_client(
+    service_name: str, region_name: str, profile_name: str | None = None
+):
     session = AWSSession(profile_name).get_session()
-
     logger.debug("Obtaining %s client", service_name)
-    return session.client(service_name=service_name, region_name=region_name)
+    try:
+        return session.client(service_name=service_name, region_name=region_name)  # type: ignore
+    except Exception:
+        raise
 
 
-def get_aws_resource(service_name, region_name, profile_name=None):
+def get_aws_resource(
+    service_name: str, region_name: str, profile_name: str | None = None
+):
     session = AWSSession(profile_name).get_session()
-
     logger.debug("Obtaining %s boto3 resource", service_name)
-    return session.resource(service_name=service_name, region_name=region_name)
+    try:
+        return session.resource(service_name=service_name, region_name=region_name)  # type: ignore
+    except Exception:
+        raise
 
 
 def get_profile_region(args, config):
-    profile = (
+    profile = str(
         getattr(args, "profile", None)
         or config.default_profile
-        or os.environ.get("AWS_VAULT")
-        or os.environ.get("AWS_PROFILE")
+        or os.getenv("AWS_VAULT")
+        or os.getenv("AWS_PROFILE")
         or AWS_DEFAULT_PROFILE
     )
 
     session = AWSSession(profile).get_session()
 
-    ap = session.available_profiles
+    ap: list[str] = session.available_profiles
     logger.debug("Obtained configured AWS profiles: %s", " ".join(ap))
     if not profile in ap:
         raise ValueError(f"Invalid profile provided: {profile}")
 
     # boto3 will search `region` in order: env AWS_DEFAULT_REGION, ~/.aws/config
     # ref: https://boto3.amazonaws.com/v1/documentation/api/latest/guide/configuration.html?highlight=region
-    region = (
+    region = str(
         getattr(args, "region", None)
         or config.default_region
         or session.region_name
         or AWS_DEFAULT_REGION
     )
 
-    if not region in AWS_REGIONS:
+    # TODO! slow?
+    ar: list[str] = session.get_available_regions("ec2")
+    logger.debug("Obtained configured AWS regions: %s", " ".join(ar))
+    if not region in ar:
         raise ValueError(f"Invalid region provided: {region}")
 
     return profile, region
@@ -227,18 +211,20 @@ def deferred_signals(signal_list=None):
 def execute(cmd, args, **kwargs):
     ret, result = None, None
 
-    env_path = DEFAULT_GATE_BIN_PATH + os.pathsep + os.environ["PATH"]
-    env = os.environ.copy()
-    env.update({"PATH": env_path})
+    env = os.environ.copy() | {
+        "PATH": str(DEFAULT_GATE_BIN_PATH) + os.pathsep + os.environ["PATH"]
+    }
     try:
-        logger.debug("PATH in environment: %s", os.environ["PATH"])
+        logger.debug("PATH in environment: %s", env["PATH"])
         logger.debug("Executing %s", " ".join([cmd] + args))
         c = kwargs.pop("clear_modules", False)
         if c:
+            logger.debug("Releasing lazy modules")
             AWSSession().gc()
-            credentials.unload()
             boto3_session.unload()
             botocore_session.unload()
+            botocore_utils.unload()
+            botocore_hooks.unload()
 
         result = subprocess.run([cmd] + args, env=env, check=True, **kwargs)
     except subprocess.CalledProcessError as e:
@@ -261,31 +247,28 @@ def execute_plugin(args, **kwargs):
 def fetch_instance_details_from_config(
     config, instance_name, profile_name, region_name
 ):
-    config_data = config.get_host(instance_name)
+    # type: (GateConfig, str, str, str) -> tuple[str, str, str]
+
+    region = region_name
+    profile = profile_name
+    instance = instance_name
+
     if (
-        config_data
-        and config_data["name"]
-        and config_data["profile"]
-        and config_data["region"]
+        (config_data := config.get_host(instance_name))
+        and (instance := config_data["name"])
+        and (profile := config_data["profile"])
+        and (region := config_data["region"])
     ):
         logger.debug(
             "Entry found in configuration file for host alias: %s", instance_name
         )
         logger.debug(
             "Host alias data: host %s with AWS profile %s in region %s",
-            config_data["name"],
-            config_data["profile"],
-            config_data["region"],
+            instance,
+            profile,
+            region,
         )
-
-        region = config_data["region"]
-        profile = config_data["profile"]
-        instance = config_data["name"]
     else:
         logger.debug("No entry found in configuration file for host: %s", instance_name)
-
-        region = region_name
-        profile = profile_name
-        instance = instance_name
 
     return instance, profile, region
