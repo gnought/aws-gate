@@ -8,6 +8,7 @@ import sys
 from contextlib import contextmanager
 from contextvars import ContextVar
 from importlib import import_module
+from pathlib import Path
 from types import ModuleType
 from typing import TYPE_CHECKING
 from weakref import proxy
@@ -21,6 +22,7 @@ if TYPE_CHECKING:
     from botocore import session
     from botocore.utils import JSONFileCache
     from boto3.session import Session
+    from botocore.credentials import CredentialResolver
 
 from aws_gate.constants import (
     AWS_DEFAULT_PROFILE,
@@ -68,7 +70,7 @@ botocore_hooks = LazyLoader("botocore.hooks")
 botocore_session = LazyLoader("botocore.session")
 
 
-def _create_aws_session(profile_name=None):
+def _create_aws_session(profile_name: str | None = None):
     # type: (str | None) -> Session
 
     logger.debug("Obtaining boto3 session object: %s", profile_name)
@@ -84,13 +86,12 @@ def _create_aws_session(profile_name=None):
     if "AWS_SESSION_TOKEN" in os.environ:
         kwargs["aws_session_token"] = str(os.environ["AWS_SESSION_TOKEN"])
 
-    # By default the cache path is ~/.aws/boto/cache
-    cli_cache = os.path.join(os.path.expanduser("~"), ".aws/cli/cache")
-
     # workaround, close connection per AWS API query
     # ref: https://gist.github.com/RyanGWU82/741a652eb816c0a6dacf
-    def before_send_handler(**kwargs):
-        req = kwargs.get("request")  # type: AWSPreparedRequest | None
+    def before_send_handler(
+        **kwargs,  # type: AWSPreparedRequest | None
+    ):
+        req = kwargs.get("request")
         if req is not None:
             req.headers["Connection"] = "close"
 
@@ -107,8 +108,11 @@ def _create_aws_session(profile_name=None):
     # Add aws-gate version to the client user-agent
     _sess.user_agent_extra = f"aws-gate/{__version__}"
 
+    # By default the cache path is ~/.aws/boto/cache
+    cli_cache = str(Path.home() / ".aws/cli/cache")
     cache = botocore_utils.JSONFileCache(cli_cache)  # type: JSONFileCache
-    _sess.get_component("credential_provider").get_provider("assume-role").cache = cache
+    credentials = _sess.get_component("credential_provider")  # type: CredentialResolver
+    credentials.get_provider("assume-role").cache = cache
 
     return boto3_session.Session(botocore_session=_sess, **kwargs)
 
