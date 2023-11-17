@@ -108,8 +108,8 @@ class SshKey:
     @key_path.setter
     def key_path(self, value: str | Path):
         self._key_path = Path(value or "")
-        if not self.key_path.is_file():
-            raise ValueError(f"Invalid key path: {value}")
+        # if not self.key_path.is_file():
+        #     raise ValueError(f"Invalid key path: {value}")
 
     @property
     def key_size(self):
