@@ -13,7 +13,7 @@ on:
     # Don't run for documentation updates
     paths-ignore:
       - '**.md'
-          
+
 
   # Run tests for any PRs.
   pull_request:
@@ -21,7 +21,7 @@ on:
     paths-ignore:
       - '**.md'
 env:
-  IMAGE_NAME: aws-gate 
+  IMAGE_NAME: aws-gate
 
 jobs:
   # Run tests.

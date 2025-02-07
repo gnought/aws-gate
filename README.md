@@ -164,12 +164,12 @@ SSH session to instance _ssm-test_ in eu-west-1 AWS region via _default_ AWS pro
 *scp* works the same way (both ways):
 ```
 % # local to remote
-% scp test_file ssm-test.eu-west-1.glovoapp:test_file    
-test_file                                                                                                                                                                 100%    0     0.0KB/s   00:00    
+% scp test_file ssm-test.eu-west-1.glovoapp:test_file
+test_file                                                                                                                                                                 100%    0     0.0KB/s   00:00
 %
 % # remote to local
 % scp ssm-test.eu-west-1.glovoapp:test_file test_file
-test_file                                                                                                                                                                 100%    0     0.0KB/s   00:00    
+test_file                                                                                                                                                                 100%    0     0.0KB/s   00:00
 ```
 
 Please, also note that while **scp over SSM** works, it can be [extremely slow](https://globaldatanet.com/blog/scp-performance-with-ssm-agent). This is because of the underlying SSM limitations and not caused by **aws-gate itself**.
@@ -226,7 +226,7 @@ Or you can use it to connect to a private RDS instance by forwarding the remote 
 
 # Terminal 2
 % mysql -h 127.0.0.1 -u root -P 3306 -p -e "SELECT User from mysql.user;"
-Enter password: 
+Enter password:
 +------------------+
 | User             |
 +------------------+
@@ -275,4 +275,3 @@ This project is licensed under the BSD License - see the [LICENSE.md](LICENSE.md
 ## Stargazers over time
 
 [![Stargazers over time](https://starchart.cc/xen0l/aws-gate.svg)](https://starchart.cc/xen0l/aws-gate)
-

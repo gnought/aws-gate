@@ -3,7 +3,7 @@ name: Build binary
 on:
   workflow_dispatch:
   push:
-    tags: 
+    tags:
       - '*'
 
 jobs:
@@ -44,11 +44,10 @@ jobs:
       shell: bash
       run: |
         invoke prepare-binary
-    
+
     - name: Upload release binaries
       uses: alexellis/upload-assets@0.2.2
       env:
         GITHUB_TOKEN: ${{ github.token }}
       with:
         asset_paths: '["./dist/*"]'
-

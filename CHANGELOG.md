@@ -58,7 +58,7 @@
 0.9.0 (2020-05-03)
 ------------------
 
-* Add **exec** command to be able to execute interactive commands over SSM. Idea by [@nc-furstenauw](https://github.com/nc-furstenauw)  
+* Add **exec** command to be able to execute interactive commands over SSM. Idea by [@nc-furstenauw](https://github.com/nc-furstenauw)
 
 0.8.8 (2020-04-21)
 ------------------
@@ -70,7 +70,7 @@
 0.8.7 (2020-02-12)
 ------------------
 
-* Improve instance listing performance in cases when there are many instances connecged to AWS Systems Manager 
+* Improve instance listing performance in cases when there are many instances connecged to AWS Systems Manager
 
 0.8.6 (2020-01-17)
 ------------------
@@ -80,7 +80,7 @@
 0.8.5 (2020-01-14)
 ------------------
 
-* Provide more debug output when fetching host information from config files. 
+* Provide more debug output when fetching host information from config files.
 
 0.8.4 (2019-12-24)
 ------------------
@@ -102,7 +102,7 @@
 ------------------
 
 * _plugin\_required_ decorator now also checks for the presence of system-installed session-manager-plugin (contribution by [@kit494way](https://github.com/kit494way))
- 
+
 0.8.0 (2019-12-03)
 ------------------
 

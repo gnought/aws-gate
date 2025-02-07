@@ -1,6 +1,6 @@
 name: Python package
 
-on: 
+on:
   push:
     paths-ignore:
       - '**.md'
@@ -20,12 +20,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    
+
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v2
       with:
         python-version: ${{ matrix.python-version }}
-    
+
     - name: Configure dependency caching
       uses: actions/cache@v1
       id: cache
@@ -34,7 +34,7 @@ jobs:
         key: pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
         restore-keys: |
             pip-${{ matrix.python-version }}-${{ hashFiles('**/requirements*.txt') }}
-            
+
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -44,8 +44,8 @@ jobs:
 
     - name: Run tests
       run: ./tests/run.py
-    
-    - name: Upload coverage to Codecov  
+
+    - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v1
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
