@@ -12,7 +12,7 @@ from aws_gate.config import (
     validate_profile,
     validate_region,
 )
-from aws_gate.constants import DEFAULT_GATE_CONFIG, DEFAULT_GATE_CONFIGD_PATH
+from aws_gate.constants import DEFAULT_GATE_CONFIG_PATH, DEFAULT_GATE_CONFIGD_PATH
 
 
 def _load_config_files(config_files):
@@ -157,7 +157,7 @@ def test_locate_config_files(mocker):
     mocker.patch("aws_gate.config.os.path.isfile", return_value=True)
     expected_config_files = [
         os.path.join(DEFAULT_GATE_CONFIGD_PATH, "foo.yaml"),
-        DEFAULT_GATE_CONFIG,
+        DEFAULT_GATE_CONFIG_PATH,
     ]
     assert _locate_config_files() == expected_config_files
 

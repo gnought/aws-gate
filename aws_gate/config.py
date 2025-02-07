@@ -2,7 +2,7 @@
 import logging
 from typing import Any
 
-from aws_gate.constants import DEFAULT_GATE_CONFIG, DEFAULT_GATE_CONFIGD_PATH
+from aws_gate.constants import DEFAULT_GATE_CONFIG_PATH, DEFAULT_GATE_CONFIGD_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +44,8 @@ def _locate_config_files():
         else []
     )
 
-    if DEFAULT_GATE_CONFIG.is_file():
-        config_files.append(DEFAULT_GATE_CONFIG)
+    if DEFAULT_GATE_CONFIG_PATH.is_file():
+        config_files.append(DEFAULT_GATE_CONFIG_PATH)
 
     return config_files
 
